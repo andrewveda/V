@@ -65,8 +65,8 @@ function formatDate(date) {
 }
 
 let allWords = [];
-let currentDate = new Date("2025-08-26"); // default date
-
+let currentDate = new Date(); // starts with today's date
+  
 // Fetch CSV from Google Sheets
 fetch(sheetCSV)
   .then(response => response.text())
