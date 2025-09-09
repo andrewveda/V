@@ -69,7 +69,7 @@
 // Google Sheet CSV URL
 const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VMLQxiNtLVflhrTA1GcTKYtouNCqDTHpiA6G7Id3QilvntH5xIICpTrRuQyNGW_ouZi/pub?output=csv";
 
-// Convert date string to comparable format
+// Convert date string to yyyy-mm-dd
 function formatDate(date) {
   return new Date(date).toISOString().split('T')[0];
 }
@@ -83,10 +83,10 @@ fetch(sheetCSV)
   .then(csvText => {
     const parsed = Papa.parse(csvText, { header: true });
     allWords = parsed.data.map(row => ({
-      date: row.date,
-      word: row.word,
-      pronunciation: row.pronunciation,
-      meaning: row.meaning
+      date: row["Date"] ? row["Date"].trim() : "",
+      word: row["Word"] ? row["Word"].trim() : "",
+      pronunciation: row["Pronunciation"] ? row["Pronunciation"].trim() : "",
+      meaning: row["Meaning"] ? row["Meaning"].trim() : ""
     }));
     displayWords();
   });
@@ -97,9 +97,14 @@ function displayWords() {
   document.getElementById("current-date").innerText = new Date(currentDate).toDateString();
   const wordListDiv = document.getElementById("word-list");
   wordListDiv.innerHTML = "";
-  
+
+  // match sheet date to formatted yyyy-mm-dd
   const todayWords = allWords.filter(w => formatDate(w.date) === dateStr);
-  
+
+  if (todayWords.length === 0) {
+    wordListDiv.innerHTML = "<p>No words found for this date.</p>";
+  }
+
   todayWords.forEach(w => {
     const entry = document.createElement("div");
     entry.className = "entry";
