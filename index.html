@@ -48,7 +48,7 @@
     padding: 16px;
     border: 1px solid #e0e0e0;
     margin-bottom: 24px;
-    display: none; /* <-- MINIMAL CHANGE: Hide calendar by default */
+    /* <-- MINIMAL CHANGE: Removed 'display: none'. Calendar is now visible by default. */
   }
 
   .calendar-header {
@@ -135,12 +135,12 @@
     color: #004080;
     text-align: center;
     margin-bottom: 16px;
-    cursor: pointer; /* <-- MINIMAL CHANGE: Make date clickable */
-    user-select: none; /* <-- MINIMAL CHANGE: Prevent text selection */
+    cursor: pointer; /* Make date clickable */
+    user-select: none; /* Prevent text selection */
   }
   
   #selected-date-display:hover {
-    opacity: 0.7; /* <-- MINIMAL CHANGE: Add hover effect */
+    opacity: 0.7; /* Add hover effect */
   }
 
   .entry {
@@ -181,7 +181,7 @@
 
   <h2 id="selected-date-display"></h2>
   
-  <div class="calendar-container" id="calendar-container"> <!-- <-- MINIMAL CHANGE: Added ID -->
+  <div class="calendar-container" id="calendar-container">
     <div class="calendar-header">
       <span class="calendar-nav" id="prev-month">&larr;</span>
       <span id="month-year"></span>
@@ -208,7 +208,7 @@
 // Google Sheet CSV URL
 const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VMLQxiNtLVflhrTA1GcTKYtouNCqDTHpiA6G7Id3QilvntH5xIICpTrRuQyNGW_ouZi/pub?output=csv";
 
-let allWords = [];
+let allWords = []; // <-- MINIMAL CHANGE: We check this array's length to know if we are loading
 let datesWithWords = new Set();
 let selectedDate = new Date();
 let calendarDate = new Date(); // Tracks the month being viewed in the calendar
@@ -218,7 +218,7 @@ const calendarDaysDiv = document.getElementById("calendar-days");
 const monthYearSpan = document.getElementById("month-year");
 const selectedDateDisplay = document.getElementById("selected-date-display");
 const wordListDiv = document.getElementById("word-list");
-const calendarContainer = document.getElementById("calendar-container"); // <-- MINIMAL CHANGE
+const calendarContainer = document.getElementById("calendar-container");
 
 // Helper: Format a Date object to 'yyyy-mm-dd'
 function formatDateObj(dateObj) {
@@ -236,6 +236,11 @@ function formatSheetDate(dateStr) {
     return null;
   }
 }
+
+// Initial setup (Runs instantly)
+calendarDate.setDate(1); // Start calendar on the 1st of the current month
+renderCalendar();
+displayWords(); // This will now show "Loading words..."
 
 // Fetch CSV with Papa Parse
 fetch(sheetCSV)
@@ -257,10 +262,9 @@ fetch(sheetCSV)
       }
     });
 
-    // Initial setup
-    calendarDate.setDate(1); // Start calendar on the 1st of the current month
+    // Re-render with data (soft load)
     renderCalendar();
-    displayWords();
+    displayWords(); // This will now show the actual words or "No words"
   });
 
 // Render the calendar for the month in `calendarDate`
@@ -306,7 +310,7 @@ function renderCalendar() {
       displayWords();
       // Re-render calendar to update selection
       renderCalendar();
-      calendarContainer.style.display = "none"; // <-- MINIMAL CHANGE: Hide on selection
+      calendarContainer.style.display = "none"; // Hide on selection
     });
 
     calendarDaysDiv.appendChild(dayCell);
@@ -321,7 +325,9 @@ function displayWords() {
 
   const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr);
 
-  if (todayWords.length === 0) {
+  if (allWords.length === 0) { // <-- MINIMAL CHANGE: Check if data hasn't loaded yet
+    wordListDiv.innerHTML = "<p>Loading words...</p>";
+  } else if (todayWords.length === 0) {
     wordListDiv.innerHTML = "<p>No words found for this date.</p>";
   } else {
     todayWords.forEach(w => {
@@ -347,7 +353,7 @@ document.getElementById("next-month").addEventListener("click", () => {
   renderCalendar();
 });
 
-// <-- MINIMAL CHANGE: Add click listener to toggle calendar -->
+// Add click listener to toggle calendar
 selectedDateDisplay.addEventListener("click", () => {
   const isHidden = calendarContainer.style.display === "none";
   calendarContainer.style.display = isHidden ? "block" : "none";
