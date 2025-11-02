@@ -5,63 +5,203 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dictionary</title>
 <style>
-.dictionary-container {
-  max-width: 500px;
-  margin: auto;
-  padding: 10px;
-  font-family: Arial, sans-serif;
-}
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to top for better calendar flow */
+    min-height: 100vh;
+    padding: 16px;
+    box-sizing: border-box;
+  }
 
-.date-nav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  font-weight: bold;
-  font-size: 1.2em;
-  margin-bottom: 15px;
-  color: #007acc;
-}
+  .dictionary-container {
+    width: 100%;
+    max-width: 500px;
+    margin: auto;
+    padding: 24px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
 
-.nav-arrow {
-  cursor: pointer;
-  font-size: 1.3em;
-}
+  h1 {
+    text-align: center;
+    color: #0056b3;
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
 
-.entry {
-  margin-bottom: 12px;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: #f0f8ff;
-}
+  .subheading {
+    text-align: center;
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 24px;
+  }
 
-.word {
-  font-weight: bold;
-  font-size: 1.2em;
-  color: #004080;
-}
+  /* Calendar Styles */
+  .calendar-container {
+    background-color: #fdfdff;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 24px;
+    display: none; /* <-- MINIMAL CHANGE: Hide calendar by default */
+  }
 
-.pronunciation {
-  font-style: italic;
-  color: #555;
-  font-size: 0.95em;
-}
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
 
-.meaning {
-  margin-top: 5px;
-}
+  #month-year {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #004080;
+  }
+
+  .calendar-nav {
+    cursor: pointer;
+    font-size: 1.5em;
+    color: #007acc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    user-select: none;
+  }
+  .calendar-nav:hover {
+    background-color: #f0f8ff;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+    font-size: 0.9em;
+  }
+
+  .day-name {
+    font-weight: bold;
+    color: #666;
+    padding: 8px 0;
+  }
+
+  .day {
+    cursor: pointer;
+    padding: 8px 0;
+    border-radius: 50%;
+    position: relative;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  
+  .day:not(.empty):hover {
+    background-color: #f0f8ff;
+  }
+
+  .day.empty {
+    cursor: default;
+  }
+
+  .day.has-word::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: #007acc;
+    border-radius: 50%;
+  }
+
+  .day.selected {
+    background-color: #007acc;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  
+  .day.selected.has-word::after {
+    background-color: #ffffff;
+  }
+
+  /* Word List */
+  #selected-date-display {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #004080;
+    text-align: center;
+    margin-bottom: 16px;
+    cursor: pointer; /* <-- MINIMAL CHANGE: Make date clickable */
+    user-select: none; /* <-- MINIMAL CHANGE: Prevent text selection */
+  }
+  
+  #selected-date-display:hover {
+    opacity: 0.7; /* <-- MINIMAL CHANGE: Add hover effect */
+  }
+
+  .entry {
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f0f8ff;
+    border: 1px solid #d1e7ff;
+  }
+
+  .word {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #004080;
+  }
+
+  .pronunciation {
+    font-style: italic;
+    color: #555;
+    font-size: 0.95em;
+  }
+
+  .meaning {
+    margin-top: 5px;
+    line-height: 1.5;
+  }
 </style>
 
 <!-- Papa Parse -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
+
 <div class="dictionary-container">
-  <div class="date-nav">
-    <span class="nav-arrow" id="prev">&larr;</span>
-    <span id="current-date">26 Aug 2025</span>
-    <span class="nav-arrow" id="next">&rarr;</span>
+  <h1>Dictionary</h1>
+  <div class="subheading">
+    Curated by Ms. Roshan Fathima, Assistant Professor, Department of English
   </div>
+
+  <h2 id="selected-date-display"></h2>
+  
+  <div class="calendar-container" id="calendar-container"> <!-- <-- MINIMAL CHANGE: Added ID -->
+    <div class="calendar-header">
+      <span class="calendar-nav" id="prev-month">&larr;</span>
+      <span id="month-year"></span>
+      <span class="calendar-nav" id="next-month">&rarr;</span>
+    </div>
+    <div class="calendar-grid">
+      <div class="day-name">Sun</div>
+      <div class="day-name">Mon</div>
+      <div class="day-name">Tue</div>
+      <div class="day-name">Wed</div>
+      <div class="day-name">Thu</div>
+      <div class="day-name">Fri</div>
+      <div class="day-name">Sat</div>
+    </div>
+    <div class="calendar-grid" id="calendar-days">
+      <!-- Days will be generated by JS -->
+    </div>
+  </div>
+  
   <div id="word-list"></div>
 </div>
 
@@ -69,13 +209,34 @@
 // Google Sheet CSV URL
 const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VMLQxiNtLVflhrTA1GcTKYtouNCqDTHpiA6G7Id3QilvntH5xIICpTrRuQyNGW_ouZi/pub?output=csv";
 
-// Convert date string to yyyy-mm-dd
-function formatDate(date) {
-  return new Date(date).toISOString().split('T')[0];
+let allWords = [];
+let datesWithWords = new Set();
+let selectedDate = new Date();
+let calendarDate = new Date(); // Tracks the month being viewed in the calendar
+
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const calendarDaysDiv = document.getElementById("calendar-days");
+const monthYearSpan = document.getElementById("month-year");
+const selectedDateDisplay = document.getElementById("selected-date-display");
+const wordListDiv = document.getElementById("word-list");
+const calendarContainer = document.getElementById("calendar-container"); // <-- MINIMAL CHANGE
+
+// Helper: Format a Date object to 'yyyy-mm-dd'
+function formatDateObj(dateObj) {
+  return dateObj.toISOString().split('T')[0];
 }
 
-let allWords = [];
-let currentDate = new Date(); // starts with today's date
+// Helper: Format a date string from the sheet to 'yyyy-mm-dd'
+function formatSheetDate(dateStr) {
+  if (!dateStr) return null;
+  try {
+    // Standardize date parsing
+    return new Date(dateStr.trim()).toISOString().split('T')[0];
+  } catch (e) {
+    console.warn(`Invalid date string from sheet: ${dateStr}`);
+    return null;
+  }
+}
 
 // Fetch CSV with Papa Parse
 fetch(sheetCSV)
@@ -88,43 +249,118 @@ fetch(sheetCSV)
       pronunciation: row["Pronunciation"] ? row["Pronunciation"].trim() : "",
       meaning: row["Meaning"] ? row["Meaning"].trim() : ""
     }));
+
+    // Populate the set of dates that have words
+    allWords.forEach(w => {
+      const dateStr = formatSheetDate(w.date);
+      if (dateStr) {
+        datesWithWords.add(dateStr);
+      }
+    });
+
+    // Initial setup
+    calendarDate.setDate(1); // Start calendar on the 1st of the current month
+    renderCalendar();
     displayWords();
   });
 
-// Display words for currentDate
+// Render the calendar for the month in `calendarDate`
+function renderCalendar() {
+  const month = calendarDate.getMonth();
+  const year = calendarDate.getFullYear();
+
+  monthYearSpan.innerText = `${monthNames[month]} ${year}`;
+  calendarDaysDiv.innerHTML = "";
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Add empty cells for padding
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "day empty";
+    calendarDaysDiv.appendChild(emptyCell);
+  }
+
+  // Add day cells
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dayCell = document.createElement("div");
+    dayCell.className = "day";
+    dayCell.innerText = i;
+
+    const currentDayDate = new Date(year, month, i);
+    const dateStr = formatDateObj(currentDayDate);
+
+    // Highlight if it has words
+    if (datesWithWords.has(dateStr)) {
+      dayCell.classList.add("has-word");
+    }
+
+    // Highlight if it's the selected date
+    if (dateStr === formatDateObj(selectedDate)) {
+      dayCell.classList.add("selected");
+    }
+
+    // Add click event
+    dayCell.addEventListener("click", () => {
+      selectedDate = currentDayDate;
+      displayWords();
+      // Re-render calendar to update selection
+      renderCalendar();
+      calendarContainer.style.display = "none"; // <-- MINIMAL CHANGE: Hide on selection
+    });
+
+    calendarDaysDiv.appendChild(dayCell);
+  }
+}
+
+// Display words for `selectedDate`
 function displayWords() {
-  const dateStr = formatDate(currentDate);
-  document.getElementById("current-date").innerText = new Date(currentDate).toDateString();
-  const wordListDiv = document.getElementById("word-list");
+  const dateStr = formatDateObj(selectedDate);
+  selectedDateDisplay.innerText = selectedDate.toDateString();
   wordListDiv.innerHTML = "";
 
-  // match sheet date to formatted yyyy-mm-dd
-  const todayWords = allWords.filter(w => formatDate(w.date) === dateStr);
+  const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr);
 
   if (todayWords.length === 0) {
     wordListDiv.innerHTML = "<p>No words found for this date.</p>";
+  } else {
+    todayWords.forEach(w => {
+      if (!w.word) return; // Skip empty rows
+      const entry = document.createElement("div");
+      entry.className = "entry";
+      entry.innerHTML = `<div class="word">${w.word}</div>
+                         <div class="pronunciation">${w.pronunciation}</div>
+                         <div class="meaning">${w.meaning}</div>`;
+      wordListDiv.appendChild(entry);
+    });
   }
-
-  todayWords.forEach(w => {
-    const entry = document.createElement("div");
-    entry.className = "entry";
-    entry.innerHTML = `<div class="word">${w.word}</div>
-                       <div class="pronunciation">${w.pronunciation}</div>
-                       <div class="meaning">${w.meaning}</div>`;
-    wordListDiv.appendChild(entry);
-  });
 }
 
-// Arrow navigation
-document.getElementById("prev").addEventListener("click", () => {
-  currentDate.setDate(currentDate.getDate() - 1);
-  displayWords();
+// Calendar navigation
+document.getElementById("prev-month").addEventListener("click", () => {
+  calendarDate.setMonth(calendarDate.getMonth() - 1);
+  renderCalendar();
 });
 
-document.getElementById("next").addEventListener("click", () => {
-  currentDate.setDate(currentDate.getDate() + 1);
-  displayWords();
+document.getElementById("next-month").addEventListener("click", () => {
+  calendarDate.setMonth(calendarDate.getMonth() + 1);
+  renderCalendar();
+});
+
+// <-- MINIMAL CHANGE: Add click listener to toggle calendar -->
+selectedDateDisplay.addEventListener("click", () => {
+  const isHidden = calendarContainer.style.display === "none";
+  calendarContainer.style.display = isHidden ? "block" : "none";
+  if(isHidden) {
+    // Sync calendar view with selected date when opening
+    calendarDate = new Date(selectedDate);
+    calendarDate.setDate(1);
+    renderCalendar();
+  }
 });
 </script>
 </body>
 </html>
+
+
