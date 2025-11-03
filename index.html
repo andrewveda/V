@@ -48,7 +48,7 @@
     padding: 16px;
     border: 1px solid #e0e0e0;
     margin-bottom: 24px;
-    /* <-- MINIMAL CHANGE: Removed 'display: none'. Calendar is now visible by default. */
+    /* Calendar is visible by default */
   }
 
   .calendar-header {
@@ -208,7 +208,7 @@
 // Google Sheet CSV URL
 const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VMLQxiNtLVflhrTA1GcTKYtouNCqDTHpiA6G7Id3QilvntH5xIICpTrRuQyNGW_ouZi/pub?output=csv";
 
-let allWords = []; // <-- MINIMAL CHANGE: We check this array's length to know if we are loading
+let allWords = [];
 let datesWithWords = new Set();
 let selectedDate = new Date();
 let calendarDate = new Date(); // Tracks the month being viewed in the calendar
@@ -230,7 +230,10 @@ function formatSheetDate(dateStr) {
   if (!dateStr) return null;
   try {
     // Standardize date parsing
-    return new Date(dateStr.trim()).toISOString().split('T')[0];
+    // === THE FIX IS HERE ===
+    // By appending "T00:00:00", we force the date string (e.g., "2025-10-04")
+    // to be parsed as a LOCAL date, just like the calendar does.
+    return new Date(dateStr.trim() + "T00:00:00").toISOString().split('T')[0];
   } catch (e) {
     console.warn(`Invalid date string from sheet: ${dateStr}`);
     return null;
@@ -241,6 +244,8 @@ function formatSheetDate(dateStr) {
 calendarDate.setDate(1); // Start calendar on the 1st of the current month
 renderCalendar();
 displayWords(); // This will now show "Loading words..."
+// Hide calendar initially
+calendarContainer.style.display = "none";
 
 // Fetch CSV with Papa Parse
 fetch(sheetCSV)
@@ -325,7 +330,7 @@ function displayWords() {
 
   const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr);
 
-  if (allWords.length === 0) { // <-- MINIMAL CHANGE: Check if data hasn't loaded yet
+  if (allWords.length === 0) { // Check if data hasn't loaded yet
     wordListDiv.innerHTML = "<p>Loading words...</p>";
   } else if (todayWords.length === 0) {
     wordListDiv.innerHTML = "<p>No words found for this date.</p>";
@@ -367,5 +372,3 @@ selectedDateDisplay.addEventListener("click", () => {
 </script>
 </body>
 </html>
-
-
