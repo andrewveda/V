@@ -211,6 +211,7 @@ const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VM
 let allWords = [];
 let datesWithWords = new Set();
 let selectedDate = new Date();
+selectedDate.setHours(0, 0, 0, 0); // <-- FIX 1: Set initial date to midnight local time
 let calendarDate = new Date(); // Tracks the month being viewed in the calendar
 
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -222,7 +223,11 @@ const calendarContainer = document.getElementById("calendar-container");
 
 // Helper: Format a Date object to 'yyyy-mm-dd'
 function formatDateObj(dateObj) {
-  return dateObj.toISOString().split('T')[0];
+  // <-- FIX 2: Replaced function to use local date parts, avoiding UTC conversion
+  const year = dateObj.getFullYear();
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 // Helper: Format a date string from the sheet to 'yyyy-mm-dd'
@@ -230,10 +235,9 @@ function formatSheetDate(dateStr) {
   if (!dateStr) return null;
   try {
     // Standardize date parsing
-    // === THE FIX IS HERE ===
-    // By appending "T00:00:00", we force the date string (e.g., "2025-10-04")
-    // to be parsed as a LOCAL date, just like the calendar does.
-    return new Date(dateStr.trim() + "T00:00:00").toISOString().split('T')[0];
+    // <-- FIX 3: Use the new local-aware formatDateObj
+    const dateObj = new Date(dateStr.trim() + "T00:00:00");
+    return formatDateObj(dateObj);
   } catch (e) {
     console.warn(`Invalid date string from sheet: ${dateStr}`);
     return null;
@@ -372,3 +376,4 @@ selectedDateDisplay.addEventListener("click", () => {
 </script>
 </body>
 </html>
+
