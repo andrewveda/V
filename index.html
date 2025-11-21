@@ -167,12 +167,41 @@
     margin-top: 5px;
     line-height: 1.5;
   }
+  .nav-fixed {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #007acc;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2em;
+  z-index: 9999;
+  user-select: none;
+}
+
+#nav-prev-fixed {
+  left: 10px;
+}
+
+#nav-next-fixed {
+  right: 10px;
+}
+
+.nav-fixed:hover {
+  background: #005c99;
+}
+
+  
 </style>
 
 <!-- Papa Parse -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
+<div id="nav-prev-fixed" class="nav-fixed">&#9664;</div>
+<div id="nav-next-fixed" class="nav-fixed">&#9654;</div>
 
 <div class="dictionary-container">
   <div class="subheading">
@@ -373,6 +402,39 @@ selectedDateDisplay.addEventListener("click", () => {
     renderCalendar();
   }
 });
+  function getSortedDates() {
+  return Array.from(datesWithWords).sort();
+}
+
+function goToAdjacentDate(direction) {
+  const sorted = getSortedDates();
+  const current = formatDateObj(selectedDate);
+  const index = sorted.indexOf(current);
+
+  let newIndex = direction === "next" ? index + 1 : index - 1;
+
+  if (newIndex < 0 || newIndex >= sorted.length) return; // No movement
+
+  const newDateStr = sorted[newIndex];
+  const [y, m, d] = newDateStr.split("-").map(Number);
+
+  selectedDate = new Date(y, m - 1, d);
+  displayWords();
+
+  calendarDate = new Date(selectedDate);
+  calendarDate.setDate(1);
+  renderCalendar();
+  calendarContainer.style.display = "none";
+}
+
+document.getElementById("nav-prev-fixed").addEventListener("click", () => {
+  goToAdjacentDate("prev");
+});
+
+document.getElementById("nav-next-fixed").addEventListener("click", () => {
+  goToAdjacentDate("next");
+});
+
 </script>
 </body>
 </html>
