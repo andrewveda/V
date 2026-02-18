@@ -217,6 +217,267 @@
   opacity: 0.85;
 }
 
+:root {
+  --obsidian: #ffffff;
+  --deep: #faf7f2;
+  --surface: #ffffff;
+  --surface2: #f5efe6;
+
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim: rgba(201,168,76,0.12);
+
+  --text: #2a2a2a;
+  --text-muted: #7a766f;
+  --text-dim: #b0a99f;
+
+  --border-dim: rgba(0,0,0,0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+  background: var(--deep);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+/* ─── MAIN CONTAINER ─── */
+
+.dictionary-container {
+  width: 100%;
+  max-width: 500px;
+  margin: auto;
+  padding: 24px;
+
+  background: linear-gradient(145deg, #ffffff, #f8f2e8);
+  border-radius: 14px;
+  border: 1px solid var(--border-dim);
+
+  box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+}
+
+/* ─── HEADINGS ─── */
+
+h1, h2 {
+  text-align: center;
+  margin-top: 0;
+  color: var(--gold);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+.subheading {
+  text-align: center;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+/* ─── CALENDAR CONTAINER ─── */
+
+.calendar-container {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid var(--border-dim);
+  margin-bottom: 24px;
+}
+
+/* ─── CALENDAR HEADER ─── */
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+#month-year {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: var(--text);
+  font-family: 'Playfair Display', serif;
+}
+
+/* ─── NAVIGATION ARROWS ─── */
+
+.calendar-nav {
+  cursor: pointer;
+  font-size: 1.5em;
+  color: var(--gold);
+  padding: 4px 8px;
+  border-radius: 6px;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav:hover {
+  background: var(--gold-dim);
+}
+
+/* ─── CALENDAR GRID ─── */
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.day-name {
+  font-weight: bold;
+  color: var(--text-dim);
+  padding: 8px 0;
+}
+
+/* ─── DAYS ─── */
+
+.day {
+  cursor: pointer;
+  padding: 8px 0;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.day:not(.empty):hover {
+  background: var(--gold-dim);
+}
+
+.day.empty {
+  cursor: default;
+}
+
+/* Word indicator dot */
+
+.day.has-word::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  background-color: var(--gold);
+  border-radius: 50%;
+}
+
+/* Selected day */
+
+.day.selected {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(201,168,76,0.35);
+}
+
+.day.selected.has-word::after {
+  background-color: white;
+}
+
+/* ─── SELECTED DATE ─── */
+
+#selected-date-display {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Playfair Display', serif;
+}
+
+#selected-date-display:hover {
+  opacity: 0.7;
+}
+
+/* ─── WORD ENTRIES ─── */
+
+.entry {
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: 10px;
+
+  background: linear-gradient(145deg, #ffffff, #f8f2e8);
+  border: 1px solid var(--border-dim);
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+.word {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: var(--gold);
+  font-family: 'Playfair Display', serif;
+}
+
+.pronunciation {
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 0.95em;
+}
+
+.meaning {
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ─── FLOATING NAV BUTTONS ─── */
+
+.nav-fixed {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  background: rgba(201,168,76,0.12);
+  backdrop-filter: blur(6px);
+
+  color: var(--gold);
+  padding: 10px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2em;
+  z-index: 9999;
+  user-select: none;
+
+  border: 1px solid rgba(201,168,76,0.35);
+
+  transition: all 0.25s ease;
+}
+
+.nav-fixed:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: white;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 18px rgba(201,168,76,0.35);
+}
+
+#nav-prev-fixed { left: 14px; }
+#nav-next-fixed { right: 14px; }
+
+/* Subtle float animation */
+
+@keyframes soft-float {
+  0% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(1.5px); }
+  100% { transform: translateY(-50%) translateX(0); }
+}
+
+.nav-fixed {
+  animation: soft-float 6s ease-in-out infinite;
+  opacity: 0.85;
+}
+
   
 </style>
 
