@@ -19,6 +19,7 @@
     --green: #2d7a4f;
     --green-light: #3da367;
     --green-dim: rgba(45,122,79,0.1);
+    --ui-accent: #6c63ff;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,6 +35,101 @@
     padding: 16px;
   }
 
+  /* ── NAME SCREEN ── */
+  #name-screen {
+    width: 100%;
+    max-width: 520px;
+    margin: auto;
+    background: linear-gradient(160deg, #1a1a2e, #0a0a18);
+    border-radius: 20px;
+    padding: 30px 24px;
+    border: 2px solid rgba(108,99,255,0.4);
+    box-shadow: 0 0 40px rgba(108,99,255,0.2);
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #name-screen h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  #name-screen .sub {
+    font-style: italic;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .hero-quote {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
+    width: 100%;
+  }
+
+  .hero-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #ffe082;
+    text-shadow: 0 0 20px rgba(255,224,130,0.4);
+    font-style: italic;
+  }
+
+  .hero-author {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.45);
+    font-style: italic;
+  }
+
+  #name-screen select,
+  #name-screen input {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 8px auto;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-family: 'EB Garamond', serif;
+    border-radius: 10px;
+    border: 2px solid rgba(108,99,255,0.4);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    outline: none;
+    transition: border 0.2s;
+  }
+  #name-screen select option { background: #1a1a2e; }
+  #name-screen input::placeholder { color: rgba(255,255,255,0.4); }
+  #name-screen select:focus,
+  #name-screen input:focus { border-color: var(--ui-accent); }
+
+  #start-btn {
+    margin-top: 18px;
+    padding: 14px 40px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #2a1a00;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(201,168,76,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-weight: 700;
+  }
+  #start-btn:hover { transform: scale(1.05); box-shadow: 0 8px 30px rgba(201,168,76,0.7); }
+
+  /* ── MAIN APP ── */
   .dictionary-container {
     width: 100%;
     max-width: 520px;
@@ -43,14 +139,24 @@
     border-radius: 14px;
     border: 1px solid var(--border-dim);
     box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+    display: none;
   }
 
   .subheading {
     text-align: center;
     font-size: 0.88em;
     color: var(--text-muted);
-    margin-bottom: 20px;
+    margin-bottom: 4px;
     font-style: italic;
+  }
+
+  .student-tag {
+    text-align: center;
+    font-size: 0.82em;
+    color: var(--gold);
+    margin-bottom: 16px;
+    font-style: italic;
+    opacity: 0.85;
   }
 
   h2 {
@@ -290,13 +396,42 @@
 </head>
 <body>
 
-<div id="nav-prev-fixed" class="nav-fixed">&#10094;</div>
-<div id="nav-next-fixed" class="nav-fixed">&#10095;</div>
+<div id="nav-prev-fixed" class="nav-fixed" style="display:none">&#10094;</div>
+<div id="nav-next-fixed" class="nav-fixed" style="display:none">&#10095;</div>
 
 <canvas id="share-canvas"></canvas>
 
-<div class="dictionary-container">
+<!-- NAME / DEPT SCREEN -->
+<div id="name-screen">
+  <h1>V for Vocabulary</h1>
+  <p class="sub">Curated by Ms. Roshan Fathima</p>
+
+  <div class="hero-quote">
+    <div class="hero-text">
+      "The limits of my language<br>
+      mean the limits of my world."
+    </div>
+    <div class="hero-author">— Ludwig Wittgenstein</div>
+  </div>
+
+  <select id="dept-select">
+    <option value="">-- Select Department --</option>
+    <option>Cyber Security</option><option>CSE-1</option><option>CSE-2</option>
+    <option>CSE-3</option><option>Mechanical Engineering</option><option>ECE-1</option>
+    <option>ECE-2</option><option>ECE-3</option><option>AI DS-1</option>
+    <option>AI DS-2</option><option>Civil</option><option>Agri</option>
+    <option>EEE</option><option>EIE</option><option>Medical Electronics</option>
+    <option>IT-1</option><option>IT-2</option>
+  </select>
+
+  <input type="text" id="name-input" placeholder="Enter your name" />
+  <button id="start-btn">📖 Open Vocabulary</button>
+</div>
+
+<!-- MAIN APP -->
+<div class="dictionary-container" id="main-app">
   <div class="subheading">Curated by Ms. Roshan Fathima, Assistant Professor, Department of English</div>
+  <div class="student-tag" id="student-tag"></div>
 
   <h2 id="selected-date-display"></h2>
 
@@ -337,13 +472,17 @@
 
 <script>
 const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VMLQxiNtLVflhrTA1GcTKYtouNCqDTHpiA6G7Id3QilvntH5xIICpTrRuQyNGW_ouZi/pub?output=csv";
+const SUPABASE_URL = "https://ahezssoczvpbkteffcgz.supabase.co/functions/v1/logQuest";
 
+let playerName = "", playerDept = "";
 let allWords = [];
 let datesWithWords = new Set();
 let selectedDate = new Date();
 selectedDate.setHours(0,0,0,0);
 let calendarDate = new Date();
-let checkedWords = new Set(); // tracks checked word indices for current date
+let checkedWords = new Set();
+let sessionStartTime = Date.now();
+let completionLogged = false;
 
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const calendarDaysDiv = document.getElementById("calendar-days");
@@ -357,6 +496,82 @@ const progressFill = document.getElementById("progress-fill");
 const completionBtn = document.getElementById("btn-share-completion");
 const completionHint = document.getElementById("completion-hint");
 
+// ── SUPABASE LOGGER ──
+async function sendToSupabase(payload) {
+  try {
+    await fetch(SUPABASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+
+// ── NAME / DEPT INIT ──
+function startApp(name, dept) {
+  playerName = name;
+  playerDept = dept;
+  try {
+    localStorage.setItem('pName', name);
+    localStorage.setItem('pDept', dept);
+  } catch(e) {}
+
+  document.getElementById('name-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('nav-prev-fixed').style.display = '';
+  document.getElementById('nav-next-fixed').style.display = '';
+  document.getElementById('student-tag').textContent = `👤 ${name} · ${dept}`;
+
+  sessionStartTime = Date.now();
+  completionLogged = false;
+
+  calendarDate = new Date();
+  calendarDate.setDate(1);
+  renderCalendar();
+  displayWords();
+
+  fetch(sheetCSV)
+    .then(r => r.text())
+    .then(csvText => {
+      const parsed = Papa.parse(csvText, { header: true });
+      allWords = parsed.data.map(row => ({
+        date: row["Date"] ? row["Date"].trim() : "",
+        word: row["Word"] ? row["Word"].trim() : "",
+        pronunciation: row["Pronunciation"] ? row["Pronunciation"].trim() : "",
+        meaning: row["Meaning"] ? row["Meaning"].trim() : ""
+      }));
+      allWords.forEach(w => {
+        const ds = formatSheetDate(w.date);
+        if (ds) datesWithWords.add(ds);
+      });
+      renderCalendar();
+      displayWords();
+    });
+}
+
+// Try auto-login from localStorage
+try {
+  const sn = localStorage.getItem('pName');
+  const sd = localStorage.getItem('pDept');
+  if (sn && sd) {
+    document.getElementById('name-input').value = sn;
+    document.getElementById('dept-select').value = sd;
+    startApp(sn, sd);
+  } else {
+    if (sn) document.getElementById('name-input').value = sn;
+    if (sd) document.getElementById('dept-select').value = sd;
+  }
+} catch(e) {}
+
+document.getElementById('start-btn').onclick = () => {
+  const n = document.getElementById('name-input').value.trim();
+  const d = document.getElementById('dept-select').value;
+  if (!d) { alert('Please select your department!'); return; }
+  if (!n) { alert('Please enter your name!'); return; }
+  startApp(n, d);
+};
+
+// ── DATE HELPERS ──
 function formatDateObj(d) {
   const y = d.getFullYear();
   const m = (d.getMonth()+1).toString().padStart(2,'0');
@@ -370,28 +585,6 @@ function formatSheetDate(dateStr) {
     return formatDateObj(d);
   } catch(e) { return null; }
 }
-
-calendarDate.setDate(1);
-renderCalendar();
-displayWords();
-
-fetch(sheetCSV)
-  .then(r => r.text())
-  .then(csvText => {
-    const parsed = Papa.parse(csvText, { header: true });
-    allWords = parsed.data.map(row => ({
-      date: row["Date"] ? row["Date"].trim() : "",
-      word: row["Word"] ? row["Word"].trim() : "",
-      pronunciation: row["Pronunciation"] ? row["Pronunciation"].trim() : "",
-      meaning: row["Meaning"] ? row["Meaning"].trim() : ""
-    }));
-    allWords.forEach(w => {
-      const ds = formatSheetDate(w.date);
-      if (ds) datesWithWords.add(ds);
-    });
-    renderCalendar();
-    displayWords();
-  });
 
 function renderCalendar() {
   const month = calendarDate.getMonth();
@@ -414,6 +607,7 @@ function renderCalendar() {
     cell.addEventListener("click", () => {
       selectedDate = d;
       checkedWords.clear();
+      completionLogged = false;
       displayWords();
       renderCalendar();
       calendarContainer.style.display = "none";
@@ -481,10 +675,24 @@ function updateCompletionState(total) {
   const allDone = checkedWords.size === total && total > 0;
   completionBtn.classList.toggle("active", allDone);
   completionHint.style.display = allDone ? "none" : "block";
+
+  // Log completion to Supabase once per date session
+  if (allDone && !completionLogged) {
+    completionLogged = true;
+    const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+    const dateStr = formatDateObj(selectedDate);
+    sendToSupabase({
+      student_name: playerName,
+      department: playerDept,
+      correct: total,
+      wrong: 0,
+      time_spent: timeSpent,
+      quest_id: `VocabDate_${dateStr}`
+    });
+  }
 }
 
 // ── CANVAS IMAGE GENERATION ──
-
 function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x+r, y);
@@ -510,53 +718,43 @@ function generateWordsImage(todayWords, dateStr) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  // Background
   const bg = ctx.createLinearGradient(0,0,W,H);
   bg.addColorStop(0, "#fffdf7");
   bg.addColorStop(1, "#f8f0dc");
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Gold border
   ctx.strokeStyle = "#c9a84c"; ctx.lineWidth = 6;
   drawRoundedRect(ctx, 10, 10, W-20, H-20, 18);
   ctx.stroke();
 
-  // Inner thin border
   ctx.strokeStyle = "rgba(201,168,76,0.3)"; ctx.lineWidth = 1.5;
   drawRoundedRect(ctx, 20, 20, W-40, H-40, 14);
   ctx.stroke();
 
-  // Title
   ctx.fillStyle = "#c9a84c";
   ctx.font = "bold 58px 'Georgia', serif";
   ctx.textAlign = "center";
   ctx.fillText("V for Vocabulary", W/2, 76);
 
-  // Date
   ctx.fillStyle = "#7a766f";
   ctx.font = "italic 30px 'Georgia', serif";
   ctx.fillText(dateStr, W/2, 118);
 
-  // Divider
   ctx.strokeStyle = "rgba(201,168,76,0.5)"; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(PAD, 140); ctx.lineTo(W-PAD, 140); ctx.stroke();
 
-  // Words
   todayWords.forEach((w, i) => {
     const y = headerH + i * lineH + lineH/2;
-    // Number
     ctx.fillStyle = "rgba(201,168,76,0.5)";
     ctx.font = "bold 26px 'Georgia', serif";
     ctx.textAlign = "right";
     ctx.fillText(`${i+1}.`, PAD + 28, y + 10);
-    // Word
     ctx.fillStyle = "#2a2a2a";
     ctx.font = "bold 38px 'Georgia', serif";
     ctx.textAlign = "left";
     ctx.fillText(w.word, PAD + 40, y + 12);
   });
 
-  // Footer
   ctx.fillStyle = "rgba(122,118,111,0.6)";
   ctx.font = "italic 22px 'Georgia', serif";
   ctx.textAlign = "center";
@@ -571,13 +769,11 @@ function generateCompletionImage(todayWords, dateStr) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  // Rich background
   const bg = ctx.createRadialGradient(W/2, H/2, 80, W/2, H/2, 500);
   bg.addColorStop(0, "#fffdf5");
   bg.addColorStop(1, "#f0e8d0");
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Gold border
   ctx.strokeStyle = "#c9a84c"; ctx.lineWidth = 8;
   drawRoundedRect(ctx, 14, 14, W-28, H-28, 22);
   ctx.stroke();
@@ -585,14 +781,12 @@ function generateCompletionImage(todayWords, dateStr) {
   drawRoundedRect(ctx, 28, 28, W-56, H-56, 16);
   ctx.stroke();
 
-  // Big checkmark circle
   const cx = W/2, cy = 260, cr = 120;
   const circleGrad = ctx.createRadialGradient(cx-20, cy-20, 10, cx, cy, cr);
   circleGrad.addColorStop(0, "#3da367"); circleGrad.addColorStop(1, "#2d7a4f");
   ctx.fillStyle = circleGrad;
   ctx.beginPath(); ctx.arc(cx, cy, cr, 0, Math.PI*2); ctx.fill();
 
-  // Checkmark
   ctx.strokeStyle = "white"; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.lineJoin = "round";
   ctx.beginPath();
   ctx.moveTo(cx - 55, cy);
@@ -600,25 +794,20 @@ function generateCompletionImage(todayWords, dateStr) {
   ctx.lineTo(cx + 60, cy - 52);
   ctx.stroke();
 
-  // Title
   ctx.fillStyle = "#2a2a2a";
   ctx.font = "bold 62px 'Georgia', serif";
   ctx.textAlign = "center";
   ctx.fillText("Words Conquered!", W/2, 440);
 
-  // Date
   ctx.fillStyle = "#c9a84c";
   ctx.font = "italic 32px 'Georgia', serif";
   ctx.fillText(dateStr, W/2, 490);
 
-  // Divider
   ctx.strokeStyle = "rgba(201,168,76,0.4)"; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(120, 520); ctx.lineTo(W-120, 520); ctx.stroke();
 
-  // Words list (compact)
   const startY = 545;
-  const cols = 2, colW = W/2 - 80;
-  const rows = Math.ceil(todayWords.length / cols);
+  const rows = Math.ceil(todayWords.length / 2);
   todayWords.forEach((w, i) => {
     const col = i < rows ? 0 : 1;
     const row = i < rows ? i : i - rows;
@@ -633,7 +822,6 @@ function generateCompletionImage(todayWords, dateStr) {
     ctx.fillText(w.word, x + 24, y);
   });
 
-  // Footer
   ctx.fillStyle = "rgba(122,118,111,0.65)";
   ctx.font = "italic 22px 'Georgia', serif";
   ctx.textAlign = "center";
@@ -643,7 +831,6 @@ function generateCompletionImage(todayWords, dateStr) {
 }
 
 function shareImageToWhatsApp(dataUrl, text) {
-  // Try native share (mobile), fallback to download + WhatsApp link
   const blob = dataURItoBlob(dataUrl);
   const file = new File([blob], "vocabulary.png", { type: "image/png" });
 
@@ -655,12 +842,10 @@ function shareImageToWhatsApp(dataUrl, text) {
 }
 
 function fallbackShare(dataUrl, text) {
-  // Download image then open WhatsApp
   const link = document.createElement("a");
   link.href = dataUrl;
   link.download = "vocabulary.png";
   link.click();
-
   setTimeout(() => {
     const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(waUrl, "_blank");
@@ -690,7 +875,7 @@ function shareCompletion() {
   const dateStr = formatDateObj(selectedDate);
   const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr && w.word);
   const img = generateCompletionImage(todayWords, selectedDate.toDateString());
-  const text = `✅ I've read & learned all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n\n📚 *V for Vocabulary* by Ms. Roshan Fathima, Dept. of English`;
+  const text = `✅ I've read & learned all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n\n📚 *V for Vocabulary* by Ms. Roshan Fathima, Dept. of English andrewveda.github.io/SRM-VEC-English/PWA`;
   shareImageToWhatsApp(img, text);
 }
 
@@ -719,6 +904,7 @@ function goToAdjacentDate(dir) {
   const [y,m,d] = sorted[newIdx].split("-").map(Number);
   selectedDate = new Date(y, m-1, d);
   checkedWords.clear();
+  completionLogged = false;
   displayWords();
   calendarDate = new Date(selectedDate); calendarDate.setDate(1); renderCalendar();
   calendarContainer.style.display = "none";
