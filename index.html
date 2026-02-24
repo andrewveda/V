@@ -690,7 +690,7 @@ function shareCompletion() {
   const dateStr = formatDateObj(selectedDate);
   const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr && w.word);
   const img = generateCompletionImage(todayWords, selectedDate.toDateString());
-  const text = `✅ I've read & learned all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n\n📚 *V for Vocabulary* by Ms. Roshan Fathima, Dept. of English`;
+  const text = `✅ I've read & learned all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n\n📚 *V for Vocabulary* by Ms. Roshan Fathima, Dept. of English andrewveda.github.io/SRM-VEC-English/PWA`;
   shareImageToWhatsApp(img, text);
 }
 
