@@ -172,6 +172,113 @@
   }
   h2:hover { opacity: 0.7; }
 
+  /* ── STUDY TIMER ── */
+  .study-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #1a1a2e, #0d0d1f);
+    border-radius: 14px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(201,168,76,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .study-timer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08), transparent 70%);
+    pointer-events: none;
+  }
+
+  .timer-icon {
+    font-size: 1.4em;
+    animation: pulse-icon 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+
+  .timer-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .timer-label {
+    font-size: 0.7em;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-style: normal;
+    font-family: 'EB Garamond', serif;
+  }
+
+  .timer-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+    transition: color 0.4s;
+  }
+
+  .timer-display.milestone {
+    color: #3da367;
+    text-shadow: 0 0 20px rgba(61,163,103,0.5);
+  }
+
+  .timer-milestone-badge {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, var(--green), var(--green-light));
+    color: white;
+    font-size: 0.72em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(45,122,79,0.4);
+  }
+
+  .timer-milestone-badge.show {
+    opacity: 1;
+    animation: badge-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes badge-pop {
+    from { transform: translateY(-50%) scale(0.7); opacity: 0; }
+    to   { transform: translateY(-50%) scale(1); opacity: 1; }
+  }
+
+  .timer-sub-label {
+    font-size: 0.65em;
+    color: rgba(255,255,255,0.3);
+    font-style: italic;
+    margin-top: 1px;
+    font-family: 'EB Garamond', serif;
+    transition: color 0.4s;
+    text-align: center;
+  }
+
+  .timer-sub-label.active {
+    color: rgba(61,163,103,0.8);
+  }
+
   /* ── CALENDAR ── */
   .calendar-container {
     background: var(--surface);
@@ -435,6 +542,17 @@
 
   <h2 id="selected-date-display"></h2>
 
+  <!-- STUDY TIMER -->
+  <div class="study-timer" id="study-timer" style="display:none">
+    <div class="timer-icon" id="timer-icon">⏱️</div>
+    <div class="timer-body">
+      <div class="timer-label">Study Time</div>
+      <div class="timer-display" id="timer-display">0:00</div>
+      <div class="timer-sub-label" id="timer-sub-label">Keep reading — let the words sink in</div>
+    </div>
+    <div class="timer-milestone-badge" id="milestone-badge"></div>
+  </div>
+
   <div class="calendar-container" id="calendar-container">
     <div class="calendar-header">
       <span class="calendar-nav" id="prev-month">&larr;</span>
@@ -483,6 +601,93 @@ let calendarDate = new Date();
 let checkedWords = new Set();
 let sessionStartTime = Date.now();
 let completionLogged = false;
+
+// ── TIMER STATE ──
+let timerInterval = null;
+let timerSeconds = 0;
+let lastMilestone = 0;
+
+const MILESTONES = [
+  { secs: 60,  icon: "🌱", label: "1 min — warming up!" },
+  { secs: 120, icon: "📖", label: "2 min — nice focus!" },
+  { secs: 180, icon: "✨", label: "3 min — words are sticking!" },
+  { secs: 300, icon: "🔥", label: "5 min — deep learner!" },
+  { secs: 600, icon: "🏆", label: "10 min — champion!" },
+];
+
+const SUBLABELS = [
+  { secs: 0,   text: "Keep reading — let the words sink in" },
+  { secs: 60,  text: "Say each word aloud as you read it" },
+  { secs: 120, text: "Try to use a word in a sentence" },
+  { secs: 180, text: "Visualise each word's meaning" },
+  { secs: 300, text: "Excellent depth of study!" },
+  { secs: 600, text: "You're truly mastering these words 🏆" },
+];
+
+function formatTimer(secs) {
+  const m = Math.floor(secs / 60);
+  const s = (secs % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerSeconds = 0;
+  lastMilestone = 0;
+  const display = document.getElementById('timer-display');
+  const sublabel = document.getElementById('timer-sub-label');
+  const badge = document.getElementById('milestone-badge');
+  const timerDiv = document.getElementById('study-timer');
+  const icon = document.getElementById('timer-icon');
+
+  timerDiv.style.display = 'flex';
+  display.textContent = '0:00';
+  display.className = 'timer-display';
+  badge.className = 'timer-milestone-badge';
+  sublabel.textContent = SUBLABELS[0].text;
+  sublabel.className = 'timer-sub-label';
+
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    display.textContent = formatTimer(timerSeconds);
+
+    // Update sub-label
+    let currentLabel = SUBLABELS[0].text;
+    for (const sl of SUBLABELS) {
+      if (timerSeconds >= sl.secs) currentLabel = sl.text;
+    }
+    sublabel.textContent = currentLabel;
+
+    // Check milestones
+    for (const m of MILESTONES) {
+      if (timerSeconds === m.secs && lastMilestone < m.secs) {
+        lastMilestone = m.secs;
+        icon.textContent = m.icon;
+        badge.textContent = m.label;
+        badge.className = 'timer-milestone-badge show';
+        display.classList.add('milestone');
+        sublabel.classList.add('active');
+
+        // Pulse animation on the timer card
+        const timerEl = document.getElementById('study-timer');
+        timerEl.style.borderColor = 'rgba(61,163,103,0.6)';
+        timerEl.style.boxShadow = '0 0 20px rgba(61,163,103,0.2)';
+        setTimeout(() => {
+          timerEl.style.borderColor = 'rgba(201,168,76,0.3)';
+          timerEl.style.boxShadow = '';
+          display.classList.remove('milestone');
+          sublabel.classList.remove('active');
+        }, 3000);
+
+        // Fade badge out after 4s
+        setTimeout(() => {
+          badge.className = 'timer-milestone-badge';
+        }, 4000);
+        break;
+      }
+    }
+  }, 1000);
+}
 
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const calendarDaysDiv = document.getElementById("calendar-days");
@@ -628,12 +833,16 @@ function displayWords() {
     wordListDiv.innerHTML = "<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>Loading words…</p>";
     shareSection.style.display = "none";
     progressWrap.style.display = "none";
+    document.getElementById('study-timer').style.display = 'none';
+    clearInterval(timerInterval);
     return;
   }
   if (todayWords.length === 0) {
     wordListDiv.innerHTML = "<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>No words found for this date.</p>";
     shareSection.style.display = "none";
     progressWrap.style.display = "none";
+    document.getElementById('study-timer').style.display = 'none';
+    clearInterval(timerInterval);
     return;
   }
 
@@ -641,6 +850,9 @@ function displayWords() {
   progressFill.style.width = "0%";
   shareSection.style.display = "flex";
   updateCompletionState(todayWords.length);
+
+  // Start / restart the study timer
+  startTimer();
 
   todayWords.forEach((w, idx) => {
     if (!w.word) return;
@@ -679,7 +891,7 @@ function updateCompletionState(total) {
   // Log completion to Supabase once per date session
   if (allDone && !completionLogged) {
     completionLogged = true;
-    const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+    const timeSpent = timerSeconds; // use actual timer reading
     const dateStr = formatDateObj(selectedDate);
     sendToSupabase({
       student_name: playerName,
@@ -803,10 +1015,16 @@ function generateCompletionImage(todayWords, dateStr) {
   ctx.font = "italic 32px 'Georgia', serif";
   ctx.fillText(dateStr, W/2, 490);
 
-  ctx.strokeStyle = "rgba(201,168,76,0.4)"; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(120, 520); ctx.lineTo(W-120, 520); ctx.stroke();
+  // Show study time on completion image
+  const studyTime = formatTimer(timerSeconds);
+  ctx.fillStyle = "rgba(45,122,79,0.8)";
+  ctx.font = "italic 26px 'Georgia', serif";
+  ctx.fillText(`Studied for ${studyTime}`, W/2, 524);
 
-  const startY = 545;
+  ctx.strokeStyle = "rgba(201,168,76,0.4)"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(120, 550); ctx.lineTo(W-120, 550); ctx.stroke();
+
+  const startY = 575;
   const rows = Math.ceil(todayWords.length / 2);
   todayWords.forEach((w, i) => {
     const col = i < rows ? 0 : 1;
@@ -875,7 +1093,8 @@ function shareCompletion() {
   const dateStr = formatDateObj(selectedDate);
   const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr && w.word);
   const img = generateCompletionImage(todayWords, selectedDate.toDateString());
-  const text = `✅ I've read & learned all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n\n📚 *V for Vocabulary* by Ms. Roshan Fathima, Dept. of English andrewveda.github.io/SRM-VEC-English/PWA`;
+  const studyTime = formatTimer(timerSeconds);
+  const text = `✅ I've read & learned all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n⏱️ Study time: ${studyTime}\n\n📚 *V for Vocabulary* by Ms. Roshan Fathima, Dept. of English andrewveda.github.io/SRM-VEC-English/PWA`;
   shareImageToWhatsApp(img, text);
 }
 
