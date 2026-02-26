@@ -550,7 +550,7 @@ function shareWords() {
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
   if (!todayWords.length) return;
   const img=generateWordsImage(todayWords, selectedDate.toDateString());
-  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Dept. of English_`;
+  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about what these words mean? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Dept. of English_`;
   shareImageToWhatsApp(img, text);
 }
 
@@ -559,7 +559,7 @@ function shareCompletion() {
   const dateStr=formatDateObj(selectedDate);
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
   const img=generateCompletionImage(todayWords, selectedDate.toDateString());
-  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n⏱ Studied for ${formatTimer(timerSeconds)}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Dept. of English_`;
+  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words for ${selectedDate.toDateString()}!\n⏱ Studied for ${formatTimer(timerSeconds)}\n\nCurious about what these words mean? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Dept. of English_`;
   shareImageToWhatsApp(img, text);
 }
 
