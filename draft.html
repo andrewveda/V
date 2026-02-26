@@ -171,8 +171,6 @@ h2:hover { opacity:.7; }
 .btn-completion.active { opacity:1; cursor:pointer; }
 .btn-completion.active:hover { transform:translateY(-1px); }
 .completion-hint { text-align:center; font-size:.82em; color:var(--text-muted); font-style:italic; }
-.btn-suggest { background:linear-gradient(135deg,#f59e0b,#d97706); color:white; box-shadow:0 4px 14px rgba(245,158,11,0.3); }
-.btn-suggest:hover { transform:translateY(-1px); }
 
 /* ── PROGRESS BAR ── */
 .progress-bar-wrap { height:4px; background:var(--border-dim); border-radius:4px; margin-bottom:16px; overflow:hidden; }
@@ -292,9 +290,7 @@ h2:hover { opacity:.7; }
       Share My Completion Badge
     </button>
     <div class="completion-hint" id="completion-hint">Tick all words above to unlock the share ✓</div>
-    <button class="share-btn btn-suggest" onclick="suggestWord()">
-      💡 Suggest a Word to Ms. Roshan
-    </button>
+
   </div>
 </div>
 
@@ -303,7 +299,6 @@ h2:hover { opacity:.7; }
 const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsGIvL6Tfe9VMLQxiNtLVflhrTA1GcTKYtouNCqDTHpiA6G7Id3QilvntH5xIICpTrRuQyNGW_ouZi/pub?output=csv";
 const SUPABASE_URL = "https://ahezssoczvpbkteffcgz.supabase.co/functions/v1/logQuest";
 const SHARE_LINK = "andrewveda.github.io/SRM-VEC-English-PWA";
-const TEACHER_PHONE = "919999999999"; // replace with Ms. Roshan's WhatsApp number
 
 // ── STATE ──
 let playerName = "", playerDept = "";
@@ -764,14 +759,7 @@ function renderQuizResult() {
   renderStreakBar(); renderCalendar();
 }
 
-// ── SUGGEST A WORD ──
-function suggestWord() {
-  const word = prompt("What word would you like to suggest?");
-  if (!word || !word.trim()) return;
-  const meaning = prompt(`Great! What does "${word}" mean? (optional)`);
-  const msg = `📝 *Word Suggestion from ${playerName} (${playerDept})*\n\nWord: *${word.trim()}*${meaning ? `\nMeaning: ${meaning.trim()}` : ''}\n\n_Sent via V for Vocabulary app_`;
-  window.open(`https://wa.me/${TEACHER_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
-}
+
 
 // ── CANVAS IMAGE GENERATION ──
 function roundRect(ctx, x, y, w, h, r) {
