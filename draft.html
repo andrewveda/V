@@ -524,6 +524,17 @@ function displayWords() {
     timerEl.style.display="none"; quizLaunchWrap.style.display="none"; clearInterval(timerInterval); return;
   }
   if (todayWords.length===0) {
+    // Auto-jump to the most recent date that has words
+    const sorted = getSortedDates();
+    if (sorted.length > 0) {
+      const latest = sorted[sorted.length - 1];
+      const [y,m,d] = latest.split("-").map(Number);
+      selectedDate = new Date(y,m-1,d);
+      calendarDate = new Date(selectedDate); calendarDate.setDate(1);
+      renderCalendar();
+      displayWords();
+      return;
+    }
     wordListDiv.innerHTML="<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>No words found for this date.</p>";
     shareSection.style.display="none"; progressWrap.style.display="none";
     timerEl.style.display="none"; quizLaunchWrap.style.display="none"; clearInterval(timerInterval); return;
