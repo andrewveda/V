@@ -94,6 +94,55 @@ h2:hover { opacity:.7; }
 .pronunciation { font-style:italic; color:var(--text-muted); font-size:.9em; }
 .meaning { margin-top:5px; line-height:1.55; font-size:.97em; }
 
+/* ── MASTER CHECK BUTTON ── */
+.master-check-wrap {
+  display: none;
+  justify-content: center;
+  margin: 14px 0 4px;
+  animation: master-appear 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes master-appear {
+  from { opacity:0; transform:scale(0.7) translateY(8px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.master-check-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(135deg, var(--green), var(--green-light));
+  color: white;
+  font-family: 'EB Garamond', serif;
+  font-size: .88rem;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(45,122,79,0.35);
+  transition: transform .2s, box-shadow .2s;
+}
+.master-check-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 18px rgba(45,122,79,0.5);
+}
+.master-check-btn .mc-icon {
+  font-size: 1em;
+  animation: star-spin 1.8s ease-in-out infinite;
+}
+@keyframes star-spin {
+  0%,100% { transform: rotate(0deg) scale(1); }
+  50%      { transform: rotate(15deg) scale(1.2); }
+}
+.master-check-btn.mastered {
+  background: linear-gradient(135deg, #b8860b, var(--gold-light));
+  box-shadow: 0 3px 14px rgba(201,168,76,0.5);
+  cursor: default;
+  pointer-events: none;
+}
+.master-check-btn.mastered .mc-icon { animation: none; }
+
 /* ── QUIZ BUTTON ── */
 .quiz-launch-wrap { margin:18px 0 0; }
 .quiz-launch-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:15px; border:none; border-radius:12px; background:linear-gradient(135deg,#6c63ff,#4a43cc); color:white; font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; cursor:pointer; box-shadow:0 6px 20px rgba(108,99,255,0.35); transition:all .25s; opacity:.45; pointer-events:none; }
@@ -272,6 +321,13 @@ h2:hover { opacity:.7; }
 
   <div id="word-list"></div>
 
+  <!-- MASTER CHECK BUTTON — appears only when all words are ticked -->
+  <div class="master-check-wrap" id="master-check-wrap">
+    <button class="master-check-btn" id="master-check-btn" onclick="masterCheck()">
+      <span class="mc-icon">⭐</span> All words mastered for today!
+    </button>
+  </div>
+
   <!-- QUIZ LAUNCH -->
   <div class="quiz-launch-wrap" id="quiz-launch-wrap" style="display:none">
     <button class="quiz-launch-btn" id="quiz-launch-btn" onclick="launchQuiz()">
@@ -330,10 +386,8 @@ function saveStreak() {
 }
 function todayStr() { return formatDateObj(new Date()); }
 function markQuizDone(dateStr) {
-  if (streakData.completedDates.includes(dateStr)) return; // already counted
+  if (streakData.completedDates.includes(dateStr)) return;
   streakData.completedDates.push(dateStr);
-
-  // Calculate current streak
   let streak = 0;
   const today = new Date(); today.setHours(0,0,0,0);
   for (let i = 0; i < 365; i++) {
@@ -353,7 +407,6 @@ function renderStreakBar() {
   bar.style.display = 'flex';
   document.getElementById('streak-count').textContent = streakData.current;
   document.getElementById('streak-best').textContent = streakData.best > 0 ? `Best: ${streakData.best}` : '';
-  // Last 7 days dots
   const dots = document.getElementById('streak-dots');
   dots.innerHTML = '';
   const today = new Date(); today.setHours(0,0,0,0);
@@ -443,6 +496,8 @@ const completionHint = document.getElementById("completion-hint");
 const quizLaunchWrap = document.getElementById("quiz-launch-wrap");
 const quizLaunchBtn = document.getElementById("quiz-launch-btn");
 const quizLaunchHint = document.getElementById("quiz-launch-hint");
+const masterCheckWrap = document.getElementById("master-check-wrap");
+const masterCheckBtn = document.getElementById("master-check-btn");
 
 async function sendToSupabase(payload) {
   try { await fetch(SUPABASE_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }); } catch(e) {}
@@ -515,6 +570,12 @@ function displayWords() {
   const dateStr=formatDateObj(selectedDate);
   selectedDateDisplay.innerText=selectedDate.toDateString();
   wordListDiv.innerHTML=""; checkedWords.clear();
+
+  // Reset master check button
+  masterCheckWrap.style.display = 'none';
+  masterCheckBtn.className = 'master-check-btn';
+  masterCheckBtn.innerHTML = '<span class="mc-icon">⭐</span> All words mastered for today!';
+
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr);
   const timerEl=document.getElementById('study-timer');
 
@@ -524,7 +585,6 @@ function displayWords() {
     timerEl.style.display="none"; quizLaunchWrap.style.display="none"; clearInterval(timerInterval); return;
   }
   if (todayWords.length===0) {
-    // Auto-jump to the most recent date that has words
     const sorted = getSortedDates();
     if (sorted.length > 0) {
       const latest = sorted[sorted.length - 1];
@@ -562,7 +622,6 @@ function displayWords() {
     wordListDiv.appendChild(entry);
   });
 
-  // If quiz already done for this date, show it
   if (streakData.completedDates.includes(dateStr)) {
     quizLaunchBtn.textContent = '✅ Quiz Completed Today!';
     quizLaunchBtn.classList.add('ready');
@@ -583,6 +642,13 @@ function updateCompletionState(total) {
   completionBtn.classList.toggle("active", allDone);
   completionHint.style.display=allDone?"none":"block";
 
+  // Show/hide master check button
+  if (allDone) {
+    masterCheckWrap.style.display = 'flex';
+  } else {
+    masterCheckWrap.style.display = 'none';
+  }
+
   // Unlock quiz
   if (allDone) {
     const dateStr=formatDateObj(selectedDate);
@@ -598,9 +664,18 @@ function updateCompletionState(total) {
   }
 }
 
+// ── MASTER CHECK ──
+function masterCheck() {
+  const btn = document.getElementById('master-check-btn');
+  btn.classList.add('mastered');
+  btn.innerHTML = '🏅 Mastered & logged!';
+  // Brief celebratory confetti burst via CSS
+  btn.style.transform = 'scale(1.08)';
+  setTimeout(() => { btn.style.transform = ''; }, 300);
+}
+
 // ── QUIZ ENGINE ──
 function buildQuizQueue(words) {
-  // Mix of flashcard, MCQ, fill-in for each word
   const types = ['flashcard','mcq','fillin'];
   const queue = [];
   const shuffled = [...words].sort(() => Math.random()-0.5);
@@ -685,7 +760,6 @@ function fcAnswer(knew) {
 }
 
 function renderMCQ(content, q, header) {
-  // Pick 3 wrong answers from other words
   const others = quizWords.filter(w=>w.word!==q.word.word).sort(()=>Math.random()-.5).slice(0,3);
   const choices = [...others, q.word].sort(()=>Math.random()-.5);
   const choicesHTML = choices.map((c,i)=>`
@@ -707,7 +781,6 @@ function mcqAnswer(idx, isCorrect, correctWord) {
   if (isCorrect==='true') { btns[idx].classList.add('correct'); quizScore++; }
   else {
     btns[idx].classList.add('wrong');
-    // Reveal correct
     btns.forEach(b=>{ if (b.textContent.trim()===quizWords.find(w=>w.word===correctWord)?.meaning?.trim()) b.classList.add('reveal'); });
   }
   setTimeout(()=>{ quizIndex++; renderQuizQuestion(); }, 1200);
@@ -752,7 +825,7 @@ function renderQuizResult() {
   const msg = pct===100?'Perfect score! You\'re a vocabulary master!':pct>=70?'Great job! Keep it up!':pct>=50?'Good effort — try again tomorrow!':'Every attempt builds your brain. Keep going!';
 
   const dateStr = formatDateObj(selectedDate);
-  markQuizDone(dateStr); // award streak
+  markQuizDone(dateStr);
 
   document.getElementById('quiz-content').innerHTML=`
     <div class="quiz-result">
@@ -764,13 +837,10 @@ function renderQuizResult() {
     </div>
   `;
 
-  // Update quiz button
   quizLaunchBtn.textContent = '✅ Quiz Completed!';
   quizLaunchHint.textContent = `Score: ${quizScore}/${quizQueue.length} · Streak: ${streakData.current} 🔥`;
   renderStreakBar(); renderCalendar();
 }
-
-
 
 // ── CANVAS IMAGE GENERATION ──
 function roundRect(ctx, x, y, w, h, r) {
@@ -883,7 +953,7 @@ function shareWords() {
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
   if(!todayWords.length) return;
   const img=generateWordsImage(todayWords,selectedDate.toDateString());
-  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Dept. of English_`;
+  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Department of English_`;
   shareImageToWhatsApp(img,text);
 }
 function shareCompletion() {
@@ -891,7 +961,7 @@ function shareCompletion() {
   const dateStr=formatDateObj(selectedDate);
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
   const img=generateCompletionImage(todayWords,selectedDate.toDateString());
-  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words!\n⏱ Studied for ${formatTimer(timerSeconds)} · 🔥 ${streakData.current}-day streak\n\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Dept. of English_`;
+  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words!\n⏱ Studied for ${formatTimer(timerSeconds)} · 🔥 ${streakData.current}-day streak\n\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Department of English_`;
   shareImageToWhatsApp(img,text);
 }
 
@@ -917,4 +987,4 @@ document.getElementById("nav-prev-fixed").addEventListener("click",()=>goToAdjac
 document.getElementById("nav-next-fixed").addEventListener("click",()=>goToAdjacentDate("next"));
 </script>
 </body>
-</html> 
+</html>
