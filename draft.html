@@ -392,19 +392,7 @@ function markQuizDone(dateStr) {
 }
 function renderStreakBar() {
   const bar = document.getElementById('streak-bar');
-  if (!playerName) return;
-  bar.style.display = 'flex';
-  document.getElementById('streak-count').textContent = streakData.current;
-  document.getElementById('streak-best').textContent = streakData.best > 0 ? `Best: ${streakData.best}` : '';
-  const dots = document.getElementById('streak-dots');
-  dots.innerHTML = '';
-  const today = new Date(); today.setHours(0,0,0,0);
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today); d.setDate(today.getDate() - i);
-    const dot = document.createElement('div');
-    dot.className = 'streak-dot' + (streakData.completedDates.includes(formatDateObj(d)) ? ' lit' : '');
-    dots.appendChild(dot);
-  }
+  if (!bar || !playerName) return;
 }
 
 // ── TIMER ──
