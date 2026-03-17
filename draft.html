@@ -276,17 +276,6 @@ h2:hover { opacity:.7; }
   <div class="subheading">Curated by Ms. Roshan Fathima, Assistant Professor, Department of English</div>
   <div class="student-tag" id="student-tag"></div>
 
-  <!-- STREAK BAR -->
-  <div class="streak-bar" id="streak-bar" style="display:none">
-    <div class="streak-flame">🔥</div>
-    <div class="streak-info">
-      <div class="streak-count" id="streak-count">0</div>
-      <div class="streak-label">Day Streak</div>
-      <div class="streak-dots" id="streak-dots"></div>
-    </div>
-    <div class="streak-best" id="streak-best"></div>
-  </div>
-
   <h2 id="selected-date-display"></h2>
 
   <!-- STUDY TIMER -->
@@ -953,7 +942,7 @@ function shareWords() {
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
   if(!todayWords.length) return;
   const img=generateWordsImage(todayWords,selectedDate.toDateString());
-  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Dept. of English_`;
+  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Department of English_`;
   shareImageToWhatsApp(img,text);
 }
 function shareCompletion() {
@@ -961,7 +950,7 @@ function shareCompletion() {
   const dateStr=formatDateObj(selectedDate);
   const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
   const img=generateCompletionImage(todayWords,selectedDate.toDateString());
-  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words!\n⏱ Studied for ${formatTimer(timerSeconds)} · 🔥 ${streakData.current}-day streak\n\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Dept. of English_`;
+  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words!\n⏱ Studied for ${formatTimer(timerSeconds)} · 🔥 ${streakData.current}-day streak\n\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Department of English_`;
   shareImageToWhatsApp(img,text);
 }
 
