@@ -275,7 +275,19 @@ h2:hover { opacity:.7; }
 <div class="dictionary-container" id="main-app">
   <div class="subheading">Curated by Ms. Roshan Fathima, Assistant Professor, Department of English</div>
   <div class="student-tag" id="student-tag"></div>
-<div id="streak-bar" style="display:none"></div>
+
+  <!-- FIX #1 & #2: Streak bar now has full HTML structure pre-built so renderStreakBar()
+       can reliably find #streak-count, #streak-best, #streak-dots -->
+  <div id="streak-bar" class="streak-bar" style="display:none">
+    <div class="streak-flame">🔥</div>
+    <div class="streak-info">
+      <div class="streak-count" id="streak-count">0</div>
+      <div class="streak-label">Day Streak</div>
+      <div class="streak-dots" id="streak-dots"></div>
+    </div>
+    <div class="streak-best" id="streak-best"></div>
+  </div>
+
   <h2 id="selected-date-display"></h2>
 
   <!-- STUDY TIMER -->
@@ -335,7 +347,6 @@ h2:hover { opacity:.7; }
       Share My Completion Badge
     </button>
     <div class="completion-hint" id="completion-hint">Tick all words above to unlock the share ✓</div>
-
   </div>
 </div>
 
@@ -361,7 +372,6 @@ let streakData = { current: 0, best: 0, lastQuizDate: null, completedDates: [] }
 // Quiz
 let quizWords = [], quizQueue = [], quizIndex = 0, quizScore = 0;
 let quizFlipped = false;
-let currentSpeechUtterance = null;
 
 // ── STREAK HELPERS ──
 function loadStreak() {
@@ -390,20 +400,30 @@ function markQuizDone(dateStr) {
   saveStreak();
   renderStreakBar();
 }
+
+// FIX #1 & #2: renderStreakBar now safely queries child elements that exist in the
+// pre-built streak bar HTML. No more null-reference errors on first call.
 function renderStreakBar() {
   const bar = document.getElementById('streak-bar');
   if (!playerName) return;
   bar.style.display = 'flex';
-  document.getElementById('streak-count').textContent = streakData.current;
-  document.getElementById('streak-best').textContent = streakData.best > 0 ? `Best: ${streakData.best}` : '';
-  const dots = document.getElementById('streak-dots');
-  dots.innerHTML = '';
+
+  const countEl = document.getElementById('streak-count');
+  const bestEl  = document.getElementById('streak-best');
+  const dotsEl  = document.getElementById('streak-dots');
+
+  if (!countEl || !bestEl || !dotsEl) return; // guard: elements must exist
+
+  countEl.textContent = streakData.current;
+  bestEl.textContent  = streakData.best > 0 ? `Best: ${streakData.best}` : '';
+
+  dotsEl.innerHTML = '';
   const today = new Date(); today.setHours(0,0,0,0);
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today); d.setDate(today.getDate() - i);
     const dot = document.createElement('div');
     dot.className = 'streak-dot' + (streakData.completedDates.includes(formatDateObj(d)) ? ' lit' : '');
-    dots.appendChild(dot);
+    dotsEl.appendChild(dot);
   }
 }
 
@@ -426,11 +446,11 @@ const SUBLABELS = [
 function formatTimer(secs) { return `${Math.floor(secs/60)}:${(secs%60).toString().padStart(2,'0')}`; }
 function startTimer() {
   clearInterval(timerInterval); timerSeconds = 0; lastMilestone = 0;
-  const display = document.getElementById('timer-display');
+  const display  = document.getElementById('timer-display');
   const sublabel = document.getElementById('timer-sub-label');
-  const badge = document.getElementById('milestone-badge');
-  const icon = document.getElementById('timer-icon');
-  const timerEl = document.getElementById('study-timer');
+  const badge    = document.getElementById('milestone-badge');
+  const icon     = document.getElementById('timer-icon');
+  const timerEl  = document.getElementById('study-timer');
   timerEl.style.display = 'flex';
   display.textContent = '0:00'; display.className = 'timer-display';
   badge.className = 'timer-milestone-badge';
@@ -457,6 +477,8 @@ function startTimer() {
 }
 
 // ── TTS ──
+// FIX #8: speak() now reads the word from the element's data-word attribute
+// to avoid any inline-HTML quote-escaping issues.
 function speak(text, btn) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -464,7 +486,7 @@ function speak(text, btn) {
   u.lang = 'en-US'; u.rate = 0.85; u.pitch = 1;
   if (btn) {
     btn.classList.add('speaking');
-    u.onend = () => btn.classList.remove('speaking');
+    u.onend  = () => btn.classList.remove('speaking');
     u.onerror = () => btn.classList.remove('speaking');
   }
   window.speechSynthesis.speak(u);
@@ -472,21 +494,21 @@ function speak(text, btn) {
 
 // ── APP INIT ──
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const calendarDaysDiv = document.getElementById("calendar-days");
-const monthYearSpan = document.getElementById("month-year");
-const selectedDateDisplay = document.getElementById("selected-date-display");
-const wordListDiv = document.getElementById("word-list");
-const calendarContainer = document.getElementById("calendar-container");
-const shareSection = document.getElementById("share-section");
-const progressWrap = document.getElementById("progress-wrap");
-const progressFill = document.getElementById("progress-fill");
-const completionBtn = document.getElementById("btn-share-completion");
-const completionHint = document.getElementById("completion-hint");
-const quizLaunchWrap = document.getElementById("quiz-launch-wrap");
-const quizLaunchBtn = document.getElementById("quiz-launch-btn");
-const quizLaunchHint = document.getElementById("quiz-launch-hint");
-const masterCheckWrap = document.getElementById("master-check-wrap");
-const masterCheckBtn = document.getElementById("master-check-btn");
+const calendarDaysDiv      = document.getElementById("calendar-days");
+const monthYearSpan        = document.getElementById("month-year");
+const selectedDateDisplay  = document.getElementById("selected-date-display");
+const wordListDiv          = document.getElementById("word-list");
+const calendarContainer    = document.getElementById("calendar-container");
+const shareSection         = document.getElementById("share-section");
+const progressWrap         = document.getElementById("progress-wrap");
+const progressFill         = document.getElementById("progress-fill");
+const completionBtn        = document.getElementById("btn-share-completion");
+const completionHint       = document.getElementById("completion-hint");
+const quizLaunchWrap       = document.getElementById("quiz-launch-wrap");
+const quizLaunchBtn        = document.getElementById("quiz-launch-btn");
+const quizLaunchHint       = document.getElementById("quiz-launch-hint");
+const masterCheckWrap      = document.getElementById("master-check-wrap");
+const masterCheckBtn       = document.getElementById("master-check-btn");
 
 async function sendToSupabase(payload) {
   try { await fetch(SUPABASE_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }); } catch(e) {}
@@ -500,147 +522,181 @@ function startApp(name, dept) {
   document.getElementById('nav-prev-fixed').style.display = '';
   document.getElementById('nav-next-fixed').style.display = '';
   document.getElementById('student-tag').textContent = `👤 ${name} · ${dept}`;
-  loadStreak(); renderStreakBar();
+  loadStreak();
+  renderStreakBar(); // FIX #1/#2: safe because streak bar HTML now pre-exists in DOM
   completionLogged = false;
   calendarDate = new Date(); calendarDate.setDate(1);
   renderCalendar(); displayWords();
   fetch(sheetCSV).then(r=>r.text()).then(csvText => {
     const parsed = Papa.parse(csvText, { header:true });
     allWords = parsed.data.map(row => ({
-      date: row["Date"]?row["Date"].trim():"",
-      word: row["Word"]?row["Word"].trim():"",
-      pronunciation: row["Pronunciation"]?row["Pronunciation"].trim():"",
-      meaning: row["Meaning"]?row["Meaning"].trim():""
+      date:         row["Date"]         ? row["Date"].trim()         : "",
+      word:         row["Word"]         ? row["Word"].trim()         : "",
+      pronunciation:row["Pronunciation"]? row["Pronunciation"].trim(): "",
+      meaning:      row["Meaning"]      ? row["Meaning"].trim()      : ""
     }));
-    allWords.forEach(w => { const ds=formatSheetDate(w.date); if(ds) datesWithWords.add(ds); });
+    allWords.forEach(w => { const ds = formatSheetDate(w.date); if (ds) datesWithWords.add(ds); });
     renderCalendar(); displayWords();
   });
 }
 
 try {
-  const sn=localStorage.getItem('pName'), sd=localStorage.getItem('pDept');
+  const sn = localStorage.getItem('pName'), sd = localStorage.getItem('pDept');
   if (sn && sd) { document.getElementById('name-input').value=sn; document.getElementById('dept-select').value=sd; startApp(sn,sd); }
   else { if(sn) document.getElementById('name-input').value=sn; if(sd) document.getElementById('dept-select').value=sd; }
 } catch(e) {}
 
 document.getElementById('start-btn').onclick = () => {
-  const n=document.getElementById('name-input').value.trim(), d=document.getElementById('dept-select').value;
+  const n = document.getElementById('name-input').value.trim();
+  const d = document.getElementById('dept-select').value;
   if (!d) { alert('Please select your department!'); return; }
   if (!n) { alert('Please enter your name!'); return; }
   startApp(n, d);
 };
 
 // ── DATE HELPERS ──
-function formatDateObj(d) { return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`; }
+function formatDateObj(d) {
+  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+}
+
+// FIX #9: formatSheetDate now handles both ISO (YYYY-MM-DD) and common
+// slash formats (M/D/YYYY or D/M/YYYY treated as M/D/YYYY like JS Date does).
 function formatSheetDate(dateStr) {
   if (!dateStr) return null;
-  try { return formatDateObj(new Date(dateStr.trim()+"T00:00:00")); } catch(e) { return null; }
+  try {
+    const cleaned = dateStr.trim();
+    // Try appending T00:00:00 for ISO-like strings (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
+      return formatDateObj(new Date(cleaned + "T00:00:00"));
+    }
+    // Fallback: let Date parse it (covers M/D/YYYY etc.)
+    const d = new Date(cleaned);
+    if (isNaN(d.getTime())) return null;
+    return formatDateObj(d);
+  } catch(e) { return null; }
 }
 
 // ── CALENDAR ──
 function renderCalendar() {
-  const month=calendarDate.getMonth(), year=calendarDate.getFullYear();
-  monthYearSpan.innerText=`${monthNames[month]} ${year}`; calendarDaysDiv.innerHTML="";
-  const firstDay=new Date(year,month,1).getDay(), daysInMonth=new Date(year,month+1,0).getDate();
-  for (let i=0;i<firstDay;i++) { const e=document.createElement("div"); e.className="day empty"; calendarDaysDiv.appendChild(e); }
-  for (let i=1;i<=daysInMonth;i++) {
-    const cell=document.createElement("div"); cell.className="day"; cell.innerText=i;
-    const d=new Date(year,month,i), ds=formatDateObj(d);
-    if (datesWithWords.has(ds)) cell.classList.add("has-word");
-    if (ds===formatDateObj(selectedDate)) cell.classList.add("selected");
+  const month = calendarDate.getMonth(), year = calendarDate.getFullYear();
+  monthYearSpan.innerText = `${monthNames[month]} ${year}`;
+  calendarDaysDiv.innerHTML = "";
+  const firstDay     = new Date(year, month, 1).getDay();
+  const daysInMonth  = new Date(year, month+1, 0).getDate();
+  for (let i = 0; i < firstDay; i++) {
+    const e = document.createElement("div"); e.className = "day empty"; calendarDaysDiv.appendChild(e);
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    const cell = document.createElement("div"); cell.className = "day"; cell.innerText = i;
+    const d = new Date(year, month, i), ds = formatDateObj(d);
+    if (datesWithWords.has(ds))               cell.classList.add("has-word");
+    if (ds === formatDateObj(selectedDate))    cell.classList.add("selected");
     if (streakData.completedDates.includes(ds)) cell.classList.add("quiz-done");
-    cell.addEventListener("click", () => { selectedDate=d; checkedWords.clear(); completionLogged=false; displayWords(); renderCalendar(); calendarContainer.style.display="none"; });
+    cell.addEventListener("click", () => {
+      selectedDate = d; checkedWords.clear(); completionLogged = false;
+      displayWords(); renderCalendar(); calendarContainer.style.display = "none";
+    });
     calendarDaysDiv.appendChild(cell);
   }
 }
 
 // ── WORD LIST ──
-function displayWords() {
-  const dateStr=formatDateObj(selectedDate);
-  selectedDateDisplay.innerText=selectedDate.toDateString();
-  wordListDiv.innerHTML=""; checkedWords.clear();
+// FIX #7: added `redirected` guard parameter to prevent infinite recursion
+// when all sheet dates fail to parse.
+function displayWords(redirected) {
+  redirected = redirected || false;
+  const dateStr = formatDateObj(selectedDate);
+  selectedDateDisplay.innerText = selectedDate.toDateString();
+  wordListDiv.innerHTML = ""; checkedWords.clear();
 
   // Reset master check button
   masterCheckWrap.style.display = 'none';
   masterCheckBtn.className = 'master-check-btn';
   masterCheckBtn.innerHTML = '<span class="mc-icon">⭐</span> All words mastered for today!';
 
-  const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr);
-  const timerEl=document.getElementById('study-timer');
+  const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr);
+  const timerEl    = document.getElementById('study-timer');
 
-  if (allWords.length===0) {
-    wordListDiv.innerHTML="<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>Loading words…</p>";
-    shareSection.style.display="none"; progressWrap.style.display="none";
-    timerEl.style.display="none"; quizLaunchWrap.style.display="none"; clearInterval(timerInterval); return;
+  if (allWords.length === 0) {
+    wordListDiv.innerHTML = "<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>Loading words…</p>";
+    shareSection.style.display = "none"; progressWrap.style.display = "none";
+    timerEl.style.display = "none"; quizLaunchWrap.style.display = "none";
+    clearInterval(timerInterval); return;
   }
-  if (todayWords.length===0) {
-    const sorted = getSortedDates();
-    if (sorted.length > 0) {
-      const latest = sorted[sorted.length - 1];
-      const [y,m,d] = latest.split("-").map(Number);
-      selectedDate = new Date(y,m-1,d);
-      calendarDate = new Date(selectedDate); calendarDate.setDate(1);
-      renderCalendar();
-      displayWords();
-      return;
+
+  if (todayWords.length === 0) {
+    // FIX #7: only auto-redirect once to avoid infinite recursion
+    if (!redirected) {
+      const sorted = getSortedDates();
+      if (sorted.length > 0) {
+        const latest = sorted[sorted.length - 1];
+        const [y, m, d] = latest.split("-").map(Number);
+        selectedDate = new Date(y, m-1, d);
+        calendarDate = new Date(selectedDate); calendarDate.setDate(1);
+        renderCalendar();
+        displayWords(true); // pass flag to prevent second redirect
+        return;
+      }
     }
-    wordListDiv.innerHTML="<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>No words found for this date.</p>";
-    shareSection.style.display="none"; progressWrap.style.display="none";
-    timerEl.style.display="none"; quizLaunchWrap.style.display="none"; clearInterval(timerInterval); return;
+    wordListDiv.innerHTML = "<p style='color:var(--text-muted);font-style:italic;text-align:center;padding:12px'>No words found for this date.</p>";
+    shareSection.style.display = "none"; progressWrap.style.display = "none";
+    timerEl.style.display = "none"; quizLaunchWrap.style.display = "none";
+    clearInterval(timerInterval); return;
   }
 
-  progressWrap.style.display="block"; progressFill.style.width="0%";
-  shareSection.style.display="flex"; quizLaunchWrap.style.display="block";
+  progressWrap.style.display = "block"; progressFill.style.width = "0%";
+  shareSection.style.display = "flex"; quizLaunchWrap.style.display = "block";
   updateCompletionState(todayWords.length); startTimer();
 
   todayWords.forEach((w, idx) => {
     if (!w.word) return;
-    const entry=document.createElement("div"); entry.className="entry";
-    const safeWord = w.word.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-    const safePron = (w.pronunciation||'').replace(/'/g,"&#39;");
-    entry.innerHTML=`
+    const entry = document.createElement("div"); entry.className = "entry";
+
+    // FIX #8: speak button uses data-word attribute instead of inline-escaped string,
+    // so words containing quotes or apostrophes can never break the onclick handler.
+    const safeWord = w.word.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    entry.innerHTML = `
       <div class="entry-check" id="chk-${idx}" onclick="toggleCheck(${idx},${todayWords.length})">✓</div>
       <div class="entry-body">
         <div class="word-row">
-          <div class="word">${w.word}</div>
-          <button class="speak-btn" title="Hear pronunciation" onclick="speak('${safeWord}', this)">🔊</button>
+          <div class="word">${safeWord}</div>
+          <button class="speak-btn" title="Hear pronunciation" data-word="${safeWord}" onclick="speak(this.dataset.word, this)">🔊</button>
         </div>
-        <div class="pronunciation">${w.pronunciation||''}</div>
-        <div class="meaning">${w.meaning||''}</div>
+        <div class="pronunciation">${(w.pronunciation||'').replace(/</g,"&lt;")}</div>
+        <div class="meaning">${(w.meaning||'').replace(/</g,"&lt;")}</div>
       </div>`;
     wordListDiv.appendChild(entry);
   });
 
+  // FIX #3: restore completionLogged = true when revisiting an already-completed date
+  // so we don't re-fire the Supabase log if user re-ticks all boxes.
   if (streakData.completedDates.includes(dateStr)) {
-    quizLaunchBtn.textContent = '✅ Quiz Completed Today!';
+    completionLogged = true;
     quizLaunchBtn.classList.add('ready');
+    quizLaunchBtn.textContent = '✅ Quiz Completed Today!';
     quizLaunchHint.textContent = 'You earned your streak for this date 🔥';
   }
 }
 
 function toggleCheck(idx, total) {
-  const chk=document.getElementById(`chk-${idx}`);
+  const chk = document.getElementById(`chk-${idx}`);
   if (checkedWords.has(idx)) { checkedWords.delete(idx); chk.classList.remove("checked"); }
   else { checkedWords.add(idx); chk.classList.add("checked"); }
-  progressFill.style.width=(checkedWords.size/total*100)+"%";
+  progressFill.style.width = (checkedWords.size / total * 100) + "%";
   updateCompletionState(total);
 }
 
 function updateCompletionState(total) {
-  const allDone=checkedWords.size===total&&total>0;
+  const allDone = checkedWords.size === total && total > 0;
   completionBtn.classList.toggle("active", allDone);
-  completionHint.style.display=allDone?"none":"block";
+  completionHint.style.display = allDone ? "none" : "block";
 
   // Show/hide master check button
-  if (allDone) {
-    masterCheckWrap.style.display = 'flex';
-  } else {
-    masterCheckWrap.style.display = 'none';
-  }
+  masterCheckWrap.style.display = allDone ? 'flex' : 'none';
 
   // Unlock quiz
   if (allDone) {
-    const dateStr=formatDateObj(selectedDate);
+    const dateStr = formatDateObj(selectedDate);
     if (!streakData.completedDates.includes(dateStr)) {
       quizLaunchBtn.classList.add('ready');
       quizLaunchHint.textContent = 'Quiz unlocked! Test yourself to earn your streak 🔥';
@@ -648,7 +704,7 @@ function updateCompletionState(total) {
   }
 
   if (allDone && !completionLogged) {
-    completionLogged=true;
+    completionLogged = true;
     sendToSupabase({ student_name:playerName, department:playerDept, correct:total, wrong:0, time_spent:timerSeconds, quest_id:`VocabDate_${formatDateObj(selectedDate)}` });
   }
 }
@@ -658,7 +714,6 @@ function masterCheck() {
   const btn = document.getElementById('master-check-btn');
   btn.classList.add('mastered');
   btn.innerHTML = '🏅 Mastered & logged!';
-  // Brief celebratory confetti burst via CSS
   btn.style.transform = 'scale(1.08)';
   setTimeout(() => { btn.style.transform = ''; }, 300);
 }
@@ -666,17 +721,13 @@ function masterCheck() {
 // ── QUIZ ENGINE ──
 function buildQuizQueue(words) {
   const types = ['flashcard','mcq','fillin'];
-  const queue = [];
-  const shuffled = [...words].sort(() => Math.random()-0.5);
-  shuffled.forEach((w, i) => {
-    queue.push({ word: w, type: types[i % types.length] });
-  });
-  return queue;
+  const shuffled = [...words].sort(() => Math.random() - 0.5);
+  return shuffled.map((w, i) => ({ word: w, type: types[i % types.length] }));
 }
 
 function launchQuiz() {
-  const dateStr=formatDateObj(selectedDate);
-  quizWords = allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
+  const dateStr = formatDateObj(selectedDate);
+  quizWords = allWords.filter(w => formatSheetDate(w.date) === dateStr && w.word);
   if (!quizWords.length) return;
   quizQueue = buildQuizQueue(quizWords);
   quizIndex = 0; quizScore = 0;
@@ -690,8 +741,8 @@ function closeQuiz() {
 }
 
 function renderQuizProgress() {
-  const pct = (quizIndex/quizQueue.length)*100;
-  document.getElementById('quiz-progress-fill').style.width=pct+"%";
+  const pct = (quizIndex / quizQueue.length) * 100;
+  document.getElementById('quiz-progress-fill').style.width = pct + "%";
 }
 
 function renderQuizQuestion() {
@@ -699,26 +750,25 @@ function renderQuizQuestion() {
   renderQuizProgress();
   const q = quizQueue[quizIndex];
   const content = document.getElementById('quiz-content');
-
-  const typeLabels = { flashcard:'🃏 Flashcard', mcq:'🎯 Multiple Choice', fillin:'✍️ Fill in the Blank' };
-  const typeBadges = { flashcard:'badge-flashcard', mcq:'badge-mcq', fillin:'badge-fillin' };
-
+  const typeLabels  = { flashcard:'🃏 Flashcard', mcq:'🎯 Multiple Choice', fillin:'✍️ Fill in the Blank' };
+  const typeBadges  = { flashcard:'badge-flashcard', mcq:'badge-mcq', fillin:'badge-fillin' };
   const header = `
     <div class="quiz-q-num">Question ${quizIndex+1} of ${quizQueue.length}</div>
     <span class="quiz-type-badge ${typeBadges[q.type]}">${typeLabels[q.type]}</span>
   `;
-
-  if (q.type === 'flashcard') renderFlashcard(content, q, header);
-  else if (q.type === 'mcq') renderMCQ(content, q, header);
-  else renderFillIn(content, q, header);
+  if      (q.type === 'flashcard') renderFlashcard(content, q, header);
+  else if (q.type === 'mcq')       renderMCQ(content, q, header);
+  else                             renderFillIn(content, q, header);
 }
 
 function renderFlashcard(content, q, header) {
   quizFlipped = false;
+  // FIX #8: use data-word on the speak button instead of inline escape
+  const safeWord = q.word.word.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
   content.innerHTML = header + `
-    <div class="quiz-word-display">${q.word.word}</div>
-    <div class="quiz-word-pron">${q.word.pronunciation||''}</div>
-    <button class="quiz-speak-btn" onclick="speak('${q.word.word.replace(/'/g,"\\'")}', this)">🔊 Hear it</button>
+    <div class="quiz-word-display">${safeWord}</div>
+    <div class="quiz-word-pron">${(q.word.pronunciation||'').replace(/</g,"&lt;")}</div>
+    <button class="quiz-speak-btn" data-word="${safeWord}" onclick="speak(this.dataset.word, this)">🔊 Hear it</button>
     <div class="flashcard-wrap" onclick="flipCard()">
       <div class="flashcard" id="fc-card">
         <div class="flashcard-front">
@@ -726,7 +776,7 @@ function renderFlashcard(content, q, header) {
           <div class="flashcard-hint">Tap to reveal the meaning</div>
         </div>
         <div class="flashcard-back">
-          <div class="flashcard-meaning">${q.word.meaning||''}</div>
+          <div class="flashcard-meaning">${(q.word.meaning||'').replace(/</g,"&lt;")}</div>
         </div>
       </div>
     </div>
@@ -741,82 +791,112 @@ function flipCard() {
   if (!card) return;
   quizFlipped = !quizFlipped;
   card.classList.toggle('flipped', quizFlipped);
-  if (quizFlipped) document.getElementById('fc-nav').style.display='flex';
+  if (quizFlipped) document.getElementById('fc-nav').style.display = 'flex';
 }
 function fcAnswer(knew) {
   if (knew) quizScore++;
   quizIndex++; renderQuizQuestion();
 }
 
+// FIX #5: MCQ answer correctness is now stored as a boolean data attribute
+// rather than relying on string comparison of template-stringified 'true'/'false'.
 function renderMCQ(content, q, header) {
-  const others = quizWords.filter(w=>w.word!==q.word.word).sort(()=>Math.random()-.5).slice(0,3);
-  const choices = [...others, q.word].sort(()=>Math.random()-.5);
-  const choicesHTML = choices.map((c,i)=>`
-    <button class="mcq-choice" id="mcq-${i}" onclick="mcqAnswer(${i},'${c.word===q.word.word}','${q.word.word.replace(/'/g,"\\'")}')">
-      ${c.meaning||c.word}
-    </button>`).join('');
+  const others = quizWords.filter(w => w.word !== q.word.word).sort(() => Math.random()-.5).slice(0, 3);
+  const choices = [...others, q.word].sort(() => Math.random()-.5);
+  const safeWord = q.word.word.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+
+  const choicesHTML = choices.map((c, i) => {
+    const isCorrect = c.word === q.word.word ? "true" : "false"; // kept as string for data-attr
+    const safeMeaning = (c.meaning || c.word).replace(/"/g,"&quot;").replace(/</g,"&lt;");
+    return `<button class="mcq-choice" id="mcq-${i}" data-correct="${isCorrect}" data-idx="${i}" onclick="mcqAnswer(${i}, quizQueue[quizIndex-0])">
+      ${safeMeaning}
+    </button>`;
+  }).join('');
 
   content.innerHTML = header + `
     <div style="font-size:.9em;color:var(--text-muted);text-align:center;margin-bottom:8px;font-style:italic">Which meaning matches this word?</div>
-    <div class="quiz-word-display">${q.word.word}</div>
-    <div class="quiz-word-pron">${q.word.pronunciation||''}</div>
-    <button class="quiz-speak-btn" onclick="speak('${q.word.word.replace(/'/g,"\\'")}', this)">🔊 Hear it</button>
+    <div class="quiz-word-display">${safeWord}</div>
+    <div class="quiz-word-pron">${(q.word.pronunciation||'').replace(/</g,"&lt;")}</div>
+    <button class="quiz-speak-btn" data-word="${safeWord}" onclick="speak(this.dataset.word, this)">🔊 Hear it</button>
     <div class="mcq-choices">${choicesHTML}</div>
   `;
 }
-function mcqAnswer(idx, isCorrect, correctWord) {
+
+// FIX #5: mcqAnswer now reads correctness from the data-correct attribute (a reliable boolean string)
+function mcqAnswer(idx, qItem) {
   const btns = document.querySelectorAll('.mcq-choice');
-  btns.forEach(b=>b.disabled=true);
-  if (isCorrect==='true') { btns[idx].classList.add('correct'); quizScore++; }
-  else {
-    btns[idx].classList.add('wrong');
-    btns.forEach(b=>{ if (b.textContent.trim()===quizWords.find(w=>w.word===correctWord)?.meaning?.trim()) b.classList.add('reveal'); });
+  btns.forEach(b => b.disabled = true);
+  const clicked = document.getElementById(`mcq-${idx}`);
+  const isCorrect = clicked && clicked.dataset.correct === 'true';
+  if (isCorrect) {
+    clicked.classList.add('correct'); quizScore++;
+  } else {
+    clicked.classList.add('wrong');
+    // Reveal the correct answer button
+    btns.forEach(b => { if (b.dataset.correct === 'true') b.classList.add('reveal'); });
   }
-  setTimeout(()=>{ quizIndex++; renderQuizQuestion(); }, 1200);
+  setTimeout(() => { quizIndex++; renderQuizQuestion(); }, 1200);
 }
 
 function renderFillIn(content, q, header) {
+  const safeWord = q.word.word.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
   content.innerHTML = header + `
     <div style="font-size:.9em;color:var(--text-muted);text-align:center;margin-bottom:12px;font-style:italic">Type the word that matches this meaning:</div>
-    <button class="quiz-speak-btn" onclick="speak('${q.word.word.replace(/'/g,"\\'")}', this)" style="margin-bottom:12px">🔊 Hear the word</button>
+    <button class="quiz-speak-btn" data-word="${safeWord}" onclick="speak(this.dataset.word, this)" style="margin-bottom:12px">🔊 Hear the word</button>
     <div class="fillin-wrap">
-      <div class="fillin-clue">${q.word.meaning||''}</div>
+      <div class="fillin-clue">${(q.word.meaning||'').replace(/</g,"&lt;")}</div>
       <input class="fillin-input" id="fillin-input" placeholder="Type the word…" autocomplete="off" spellcheck="false"
-        onkeydown="if(event.key==='Enter')checkFillIn('${q.word.word.replace(/'/g,"\\'")}')">
-      <button class="fillin-submit" onclick="checkFillIn('${q.word.word.replace(/'/g,"\\'")}')">Check ✓</button>
+        data-answer="${safeWord}"
+        onkeydown="if(event.key==='Enter') checkFillIn()">
+      <button class="fillin-submit" onclick="checkFillIn()">Check ✓</button>
       <div class="fillin-feedback" id="fillin-feedback"></div>
     </div>
   `;
-  setTimeout(()=>document.getElementById('fillin-input')?.focus(), 100);
+  setTimeout(() => document.getElementById('fillin-input')?.focus(), 100);
 }
-function checkFillIn(correctWord) {
+
+// FIX #4: empty input now shows a prompt instead of silently stalling.
+// FIX #8: correct answer is read from data-answer attribute instead of inline JS string.
+function checkFillIn() {
   const inp = document.getElementById('fillin-input');
-  const fb = document.getElementById('fillin-feedback');
+  const fb  = document.getElementById('fillin-feedback');
   if (!inp) return;
-  const val = inp.value.trim().toLowerCase();
-  const correct = correctWord.trim().toLowerCase();
+
+  const val         = inp.value.trim().toLowerCase();
+  const correctWord = (inp.dataset.answer || '').trim();
+  const correct     = correctWord.toLowerCase();
+
+  // FIX #4: handle empty submission
+  if (!val) {
+    fb.textContent = 'Please type a word first.';
+    fb.style.color = 'var(--text-muted)';
+    return;
+  }
+
   if (val === correct) {
-    inp.classList.add('correct'); fb.textContent='✓ Correct!'; fb.style.color='var(--green)';
+    inp.classList.add('correct');
+    fb.textContent = '✓ Correct!';
+    fb.style.color = 'var(--green)';
     quizScore++;
-    setTimeout(()=>{ quizIndex++; renderQuizQuestion(); }, 900);
-  } else if (val.length > 0) {
+    setTimeout(() => { quizIndex++; renderQuizQuestion(); }, 900);
+  } else {
     inp.classList.add('wrong');
-    fb.innerHTML=`✗ The answer was <strong>${correctWord}</strong>`;
-    fb.style.color='#c62828';
-    setTimeout(()=>{ quizIndex++; renderQuizQuestion(); }, 1400);
+    fb.innerHTML = `✗ The answer was <strong>${correctWord}</strong>`;
+    fb.style.color = '#c62828';
+    setTimeout(() => { quizIndex++; renderQuizQuestion(); }, 1400);
   }
 }
 
 function renderQuizResult() {
   renderQuizProgress();
-  const pct = Math.round(quizScore/quizQueue.length*100);
+  const pct   = Math.round(quizScore / quizQueue.length * 100);
   const emoji = pct===100?'🏆':pct>=70?'🌟':pct>=50?'👍':'📖';
-  const msg = pct===100?'Perfect score! You\'re a vocabulary master!':pct>=70?'Great job! Keep it up!':pct>=50?'Good effort — try again tomorrow!':'Every attempt builds your brain. Keep going!';
+  const msg   = pct===100?"Perfect score! You're a vocabulary master!":pct>=70?"Great job! Keep it up!":pct>=50?"Good effort — try again tomorrow!":"Every attempt builds your brain. Keep going!";
 
   const dateStr = formatDateObj(selectedDate);
   markQuizDone(dateStr);
 
-  document.getElementById('quiz-content').innerHTML=`
+  document.getElementById('quiz-content').innerHTML = `
     <div class="quiz-result">
       <div class="quiz-result-emoji">${emoji}</div>
       <div class="quiz-result-score">${quizScore}/${quizQueue.length}</div>
@@ -872,8 +952,11 @@ function buildTealCard(todayWords, headerFn, HEADER_H) {
   return canvas.toDataURL("image/png");
 }
 
-function generateWordsImage(todayWords, dateStr) {
-  return buildTealCard(todayWords, (ctx,W,OUTER)=>{
+// FIX #10: both image generators now await document.fonts.ready so that
+// 'Fredoka One' is guaranteed loaded before canvas text is drawn.
+async function generateWordsImage(todayWords, dateStr) {
+  await document.fonts.ready;
+  return buildTealCard(todayWords, (ctx,W,OUTER) => {
     ctx.textAlign="center"; ctx.fillStyle="#ffffff";
     ctx.font="bold 64px 'Fredoka One','Georgia',sans-serif";
     ctx.fillText("Everyday Vocabulary",W/2,OUTER+82);
@@ -882,7 +965,8 @@ function generateWordsImage(todayWords, dateStr) {
   }, 150);
 }
 
-function generateCompletionImage(todayWords, dateStr) {
+async function generateCompletionImage(todayWords, dateStr) {
+  await document.fonts.ready;
   const studyTime=formatTimer(timerSeconds), streak=streakData.current;
   const W=900,OUTER=40,INNER=36,GAP=14,ROW_H=90;
   const rows=Math.ceil(todayWords.length/2),HEADER_H=220,FOOTER_H=136;
@@ -922,58 +1006,82 @@ function generateCompletionImage(todayWords, dateStr) {
 
 function shareImageToWhatsApp(dataUrl, text) {
   const blob=dataURItoBlob(dataUrl), file=new File([blob],"vocabulary.png",{type:"image/png"});
-  if (navigator.canShare&&navigator.canShare({files:[file]})) {
-    navigator.share({files:[file],text}).catch(()=>fallbackShare(dataUrl,text));
-  } else { fallbackShare(dataUrl,text); }
+  if (navigator.canShare && navigator.canShare({files:[file]})) {
+    navigator.share({files:[file], text}).catch(()=>fallbackShare(dataUrl, text));
+  } else { fallbackShare(dataUrl, text); }
 }
 function fallbackShare(dataUrl, text) {
   const link=document.createElement("a"); link.href=dataUrl; link.download="vocabulary.png"; link.click();
-  setTimeout(()=>{ window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,"_blank"); },800);
+  setTimeout(()=>{ window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,"_blank"); }, 800);
 }
 function dataURItoBlob(dataURI) {
-  const byteStr=atob(dataURI.split(',')[1]),mimeStr=dataURI.split(',')[0].split(':')[1].split(';')[0];
-  const ab=new ArrayBuffer(byteStr.length),ia=new Uint8Array(ab);
+  const byteStr=atob(dataURI.split(',')[1]), mimeStr=dataURI.split(',')[0].split(':')[1].split(';')[0];
+  const ab=new ArrayBuffer(byteStr.length), ia=new Uint8Array(ab);
   for(let i=0;i<byteStr.length;i++) ia[i]=byteStr.charCodeAt(i);
   return new Blob([ab],{type:mimeStr});
 }
 
-function shareWords() {
-  const dateStr=formatDateObj(selectedDate);
-  const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
-  if(!todayWords.length) return;
-  const img=generateWordsImage(todayWords,selectedDate.toDateString());
-  const text=`📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Department of English_`;
-  shareImageToWhatsApp(img,text);
+async function shareWords() {
+  const dateStr    = formatDateObj(selectedDate);
+  const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr && w.word);
+  if (!todayWords.length) return;
+  const img  = await generateWordsImage(todayWords, selectedDate.toDateString());
+  const text = `📚 *Everyday Vocabulary* — ${selectedDate.toDateString()}\n\n${todayWords.map((w,i)=>`${i+1}. *${w.word}*`).join('\n')}\n\nCurious about meanings & pronunciation? 🤔✨\n🔗 https://${SHARE_LINK}\n\n_Curated by Ms. Roshan Fathima, Department of English_`;
+  shareImageToWhatsApp(img, text);
 }
-function shareCompletion() {
-  if(!completionBtn.classList.contains("active")) return;
-  const dateStr=formatDateObj(selectedDate);
-  const todayWords=allWords.filter(w=>formatSheetDate(w.date)===dateStr&&w.word);
-  const img=generateCompletionImage(todayWords,selectedDate.toDateString());
-  const text=`🏆 I've conquered all ${todayWords.length} vocabulary words!\n⏱ Studied for ${formatTimer(timerSeconds)} · 🔥 ${streakData.current}-day streak\n\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Department of English_`;
-  shareImageToWhatsApp(img,text);
+
+async function shareCompletion() {
+  if (!completionBtn.classList.contains("active")) return;
+  const dateStr    = formatDateObj(selectedDate);
+  const todayWords = allWords.filter(w => formatSheetDate(w.date) === dateStr && w.word);
+  const img  = await generateCompletionImage(todayWords, selectedDate.toDateString());
+  const text = `🏆 I've conquered all ${todayWords.length} vocabulary words!\n⏱ Studied for ${formatTimer(timerSeconds)} · 🔥 ${streakData.current}-day streak\n\n🔗 https://${SHARE_LINK}\n\n_V for Vocabulary by Ms. Roshan Fathima, Department of English_`;
+  shareImageToWhatsApp(img, text);
 }
 
 // ── NAVIGATION ──
-document.getElementById("prev-month").addEventListener("click",()=>{calendarDate.setMonth(calendarDate.getMonth()-1);renderCalendar();});
-document.getElementById("next-month").addEventListener("click",()=>{calendarDate.setMonth(calendarDate.getMonth()+1);renderCalendar();});
+document.getElementById("prev-month").addEventListener("click",()=>{ calendarDate.setMonth(calendarDate.getMonth()-1); renderCalendar(); });
+document.getElementById("next-month").addEventListener("click",()=>{ calendarDate.setMonth(calendarDate.getMonth()+1); renderCalendar(); });
 document.getElementById("selected-date-display").addEventListener("click",()=>{
-  const hidden=calendarContainer.style.display==="none"||!calendarContainer.style.display;
-  calendarContainer.style.display=hidden?"block":"none";
-  if(hidden){calendarDate=new Date(selectedDate);calendarDate.setDate(1);renderCalendar();}
+  const hidden = calendarContainer.style.display === "none" || !calendarContainer.style.display;
+  calendarContainer.style.display = hidden ? "block" : "none";
+  if (hidden) { calendarDate = new Date(selectedDate); calendarDate.setDate(1); renderCalendar(); }
 });
-function getSortedDates(){return Array.from(datesWithWords).sort();}
-function goToAdjacentDate(dir){
-  const sorted=getSortedDates(),curr=formatDateObj(selectedDate),idx=sorted.indexOf(curr);
-  const newIdx=dir==="next"?idx+1:idx-1;
-  if(newIdx<0||newIdx>=sorted.length) return;
-  const [y,m,d]=sorted[newIdx].split("-").map(Number);
-  selectedDate=new Date(y,m-1,d); checkedWords.clear(); completionLogged=false;
-  displayWords(); calendarDate=new Date(selectedDate); calendarDate.setDate(1);
-  renderCalendar(); calendarContainer.style.display="none";
+
+function getSortedDates() { return Array.from(datesWithWords).sort(); }
+
+// FIX #6: guard against idx === -1 (current date not in datesWithWords set)
+function goToAdjacentDate(dir) {
+  const sorted = getSortedDates();
+  const curr   = formatDateObj(selectedDate);
+  const idx    = sorted.indexOf(curr);
+  if (idx === -1) {
+    // Current date not in the set — jump to nearest boundary sensibly
+    if (dir === "next") {
+      const future = sorted.find(d => d > curr);
+      if (!future) return;
+      const [y,m,d] = future.split("-").map(Number);
+      selectedDate = new Date(y,m-1,d);
+    } else {
+      const past = [...sorted].reverse().find(d => d < curr);
+      if (!past) return;
+      const [y,m,d] = past.split("-").map(Number);
+      selectedDate = new Date(y,m-1,d);
+    }
+  } else {
+    const newIdx = dir === "next" ? idx + 1 : idx - 1;
+    if (newIdx < 0 || newIdx >= sorted.length) return;
+    const [y,m,d] = sorted[newIdx].split("-").map(Number);
+    selectedDate = new Date(y,m-1,d);
+  }
+  checkedWords.clear(); completionLogged = false;
+  displayWords();
+  calendarDate = new Date(selectedDate); calendarDate.setDate(1);
+  renderCalendar(); calendarContainer.style.display = "none";
 }
-document.getElementById("nav-prev-fixed").addEventListener("click",()=>goToAdjacentDate("prev"));
-document.getElementById("nav-next-fixed").addEventListener("click",()=>goToAdjacentDate("next"));
+
+document.getElementById("nav-prev-fixed").addEventListener("click", () => goToAdjacentDate("prev"));
+document.getElementById("nav-next-fixed").addEventListener("click", () => goToAdjacentDate("next"));
 </script>
 </body>
 </html>
